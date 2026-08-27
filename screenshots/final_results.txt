@@ -1,0 +1,42 @@
+==============================================================
+ Korai Studio — UI Test Run Summary
+ Finished at: 2026-08-27 19:36:02
+ Exit status: 0
+==============================================================
+
+#    Test                                                           Result
+------------------------------------------------------------------------------
+1    tests/test_registration.py::test_register_page_loads[chromium] PASSED
+2    tests/test_registration.py::test_registration_form_fields_visible_and_configured[chromium] PASSED
+3    tests/test_registration.py::test_register_page_reachable_from_sign_in[chromium] PASSED
+4    tests/test_registration.py::test_register_page_links_back_to_sign_in[chromium] PASSED
+5    tests/test_registration.py::test_create_account_button_visible_and_enabled[chromium] PASSED
+6    tests/test_registration.py::test_submit_with_mismatched_passwords_is_rejected[chromium] PASSED
+7    tests/test_registration.py::test_account_header_link_opens_sign_in[chromium] PASSED
+8    tests/test_login.py::test_login_page_loads[chromium]           PASSED
+9    tests/test_login.py::test_login_form_fields_visible_and_configured[chromium] PASSED
+10   tests/test_login.py::test_sign_in_button_visible_and_enabled[chromium] PASSED
+11   tests/test_login.py::test_forgot_password_link_present[chromium] PASSED
+12   tests/test_login.py::test_create_account_link_navigates_to_register[chromium] PASSED
+13   tests/test_login.py::test_login_page_reachable_from_header[chromium] PASSED
+14   tests/test_login.py::test_login_page_reachable_from_register[chromium] PASSED
+15   tests/test_login.py::test_submit_with_invalid_credentials_is_rejected[chromium] PASSED
+16   tests/test_login.py::test_submit_with_valid_credentials_logs_in[chromium] PASSED
+17   tests/test_homepage.py::test_homepage_loads_and_logo_visible[chromium] PASSED
+18   tests/test_homepage.py::test_logo_is_a_link_back_to_home[chromium] PASSED
+19   tests/test_homepage.py::test_announcement_bar_is_visible[chromium] PASSED
+20   tests/test_homepage.py::test_hero_carousel_is_rendered[chromium] PASSED
+21   tests/test_homepage.py::test_product_section_shows_items[chromium] PASSED
+22   tests/test_homepage.py::test_main_navigation_items_visible_and_clickable[chromium] PASSED
+23   tests/test_navigation.py::test_primary_nav_navigates_to_expected_page[chromium-Shop-/shop-Shop \u2014 Korai Studio-Everything] PASSED
+24   tests/test_navigation.py::test_primary_nav_navigates_to_expected_page[chromium-Best Sellers-/best-sellers-Best Sellers \u2014 Korai Studio-Best Sellers] PASSED
+25   tests/test_navigation.py::test_primary_nav_navigates_to_expected_page[chromium-New Arrivals-/new-arrivals-New Arrivals \u2014 Korai Studio-New Arrivals] PASSED
+26   tests/test_navigation.py::test_logo_navigates_back_home[chromium] PASSED
+27   tests/test_navigation.py::test_collections_dropdown_reveals_links[chromium] PASSED
+28   tests/test_navigation.py::test_collections_subgroup_expands_and_links_visited[chromium] PASSED
+29   tests/test_navigation.py::test_collections_dropdown_link_navigates_to_shop_subcategory[chromium] PASSED
+30   tests/test_navigation.py::test_cart_link_goes_to_bag_not_checkout[chromium] PASSED
+
+==============================================================
+ TOTAL: 30   PASSED: 30   FAILED: 0   SKIPPED: 0
+==============================================================

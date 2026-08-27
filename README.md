@@ -73,8 +73,13 @@ pytest --headed=False
   run via the session-scoped `context`/`page` fixtures.
 - **Failure screenshots** — captured automatically on test failure and saved
   to `screenshots/`, then embedded into the HTML report.
+- **Final results summary** — a per-test result recap is written to
+  `screenshots/final_results.txt` after every run.
+- **Deterministic execution order** — suites run in a fixed sequence
+  (`registration → login → homepage → navigation`, with failed login before
+  the successful login) via `pytest-order` markers.
 
-All of the above are configured in `pytest.ini`:
+All of the above are configured in `pytest.ini` and `conftest.py`:
 
 ```ini
 [pytest]
@@ -114,6 +119,7 @@ After a run:
 
 - `reports/report.html` — full HTML test report.
 - `screenshots/*.png` — screenshot of the page at the moment of any failure.
+- `screenshots/final_results.txt` — summary of every test's final result.
 
 Both are git-ignored (`reports/`) or git-tracked via `.gitkeep` (`screenshots/`)
 as appropriate.

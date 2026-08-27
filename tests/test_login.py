@@ -7,6 +7,8 @@ credentials — without logging into a real account on the live site.
 
 from urllib.parse import urlparse
 
+import pytest
+
 from pages.login_page import LoginPage
 
 
@@ -15,6 +17,7 @@ def url_path(url):
     return urlparse(url).path
 
 
+@pytest.mark.order(20)
 def test_login_page_loads(login_page):
     """The login page loads with the correct title, heading and form."""
     assert login_page.page.title() == "Sign in — Korai Studio"
@@ -22,6 +25,7 @@ def test_login_page_loads(login_page):
     assert login_page.heading().inner_text() == "Sign in"
 
 
+@pytest.mark.order(21)
 def test_login_form_fields_visible_and_configured(login_page):
     """Both fields are present, visible and carry the right constraints."""
     email = login_page.email_field()
@@ -36,6 +40,7 @@ def test_login_form_fields_visible_and_configured(login_page):
     assert password.get_attribute("required") is not None
 
 
+@pytest.mark.order(22)
 def test_sign_in_button_visible_and_enabled(login_page):
     """The submit button is rendered, visible and clickable."""
     button = login_page.submit_button()
@@ -44,6 +49,7 @@ def test_sign_in_button_visible_and_enabled(login_page):
     assert button.inner_text().strip().casefold() == "sign in"
 
 
+@pytest.mark.order(23)
 def test_forgot_password_link_present(login_page):
     """A 'Forgot your password?' link points at the reset flow."""
     link = login_page.forgot_password_link()
@@ -51,6 +57,7 @@ def test_forgot_password_link_present(login_page):
     assert "/account/forgot-password" in link.get_attribute("href")
 
 
+@pytest.mark.order(24)
 def test_create_account_link_navigates_to_register(login_page):
     """'Create an account' on the sign-in page leads to registration."""
     login_page.create_account_link().click()
@@ -58,6 +65,7 @@ def test_create_account_link_navigates_to_register(login_page):
     assert url_path(login_page.page.url) == "/account/register"
 
 
+@pytest.mark.order(25)
 def test_login_page_reachable_from_header(login_page):
     """The header account link opens the sign-in page."""
     login_page.page.locator("header .account-link").first.click()
@@ -65,6 +73,7 @@ def test_login_page_reachable_from_header(login_page):
     assert url_path(login_page.page.url) == "/account/login"
 
 
+@pytest.mark.order(26)
 def test_login_page_reachable_from_register(login_page):
     """The 'Sign in' link on the register page opens login."""
     login_page.page.goto("/account/register")
@@ -75,6 +84,7 @@ def test_login_page_reachable_from_register(login_page):
     assert url_path(login_page.page.url) == "/account/login"
 
 
+@pytest.mark.order(27)
 def test_submit_with_invalid_credentials_is_rejected(login_page):
     """Submitting wrong credentials must not log in or leave the login page."""
     login_page.fill_form(email="invalid@example.com", password="wrongpassword")
@@ -83,6 +93,7 @@ def test_submit_with_invalid_credentials_is_rejected(login_page):
     assert url_path(login_page.page.url) == "/account/login"
 
 
+@pytest.mark.order(28)
 def test_submit_with_valid_credentials_logs_in(login_page, context):
     """A valid username/password logs the user in and lands on their account."""
     login_page.fill_form(email="sachinjha.765@gmail.com", password="Sachin@123")

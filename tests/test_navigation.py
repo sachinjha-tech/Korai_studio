@@ -10,6 +10,7 @@ import pytest
 from pages.home_page import HomePage
 
 
+@pytest.mark.order(40)
 @pytest.mark.parametrize("label,path,title,heading", [
     ("Shop", "/shop", "Shop — Korai Studio", "Everything"),
     ("Best Sellers", "/best-sellers", "Best Sellers — Korai Studio", "Best Sellers"),
@@ -23,6 +24,7 @@ def test_primary_nav_navigates_to_expected_page(home_page, label, path, title, h
     assert heading.casefold() in home_page.main_heading().inner_text().casefold()
 
 
+@pytest.mark.order(41)
 def test_logo_navigates_back_home(home_page):
     """Clicking the logo returns the user to the homepage root."""
     home_page.click_nav("Shop")
@@ -32,6 +34,7 @@ def test_logo_navigates_back_home(home_page):
     assert home_page.page.url.rstrip("/").endswith("shop.thekoraistudio.com")
 
 
+@pytest.mark.order(42)
 def test_collections_dropdown_reveals_links(home_page):
     """Hovering Collections shows its top-level sub-category links, all same-site."""
     home_page.open_dropdown()
@@ -46,6 +49,7 @@ def test_collections_dropdown_reveals_links(home_page):
         assert "payment" not in href.lower()
 
 
+@pytest.mark.order(43)
 def test_collections_subgroup_expands_and_links_visited(home_page):
     """Expanding 'Launching Soon' reveals its links, all pointing to same-site pages."""
     home_page.open_dropdown()
@@ -62,6 +66,7 @@ def test_collections_subgroup_expands_and_links_visited(home_page):
         assert "payment" not in href.lower()
 
 
+@pytest.mark.order(44)
 def test_collections_dropdown_link_navigates_to_shop_subcategory(home_page):
     """A dropdown link such as 'Shirts' navigates to its shop category page."""
     home_page.open_dropdown()
@@ -71,6 +76,7 @@ def test_collections_dropdown_link_navigates_to_shop_subcategory(home_page):
     assert home_page.page.url.rstrip("/").endswith("/shop/shirts")
 
 
+@pytest.mark.order(45)
 def test_cart_link_goes_to_bag_not_checkout(home_page):
     """The header Bag link opens the cart page, never the checkout/payment flow."""
     href = home_page.cart_link().get_attribute("href")
