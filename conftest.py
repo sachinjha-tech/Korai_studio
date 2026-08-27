@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Browser, BrowserContext, Page
 from pages.home_page import HomePage
+from pages.login_page import LoginPage
 from pages.register_page import RegisterPage
 
 
@@ -31,6 +32,13 @@ def register_page(page):
     register = RegisterPage(page)
     register.goto()
     return register
+
+
+@pytest.fixture
+def login_page(page):
+    login = LoginPage(page)
+    login.goto()
+    return login
 
 
 @pytest.hookimpl(hookwrapper=True)
