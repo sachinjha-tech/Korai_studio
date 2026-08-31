@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 from playwright.sync_api import Browser, BrowserContext, Page
+from pages.cart_page import CartPage
+from pages.checkout_page import CheckoutPage
 from pages.home_page import HomePage
 from pages.login_page import LoginPage
 from pages.register_page import RegisterPage
@@ -95,6 +97,20 @@ def login_page(page):
     login = LoginPage(page)
     login.goto()
     return login
+
+
+@pytest.fixture
+def cart_page(page):
+    cart = CartPage(page)
+    cart.goto()
+    return cart
+
+
+@pytest.fixture
+def checkout_page(page):
+    checkout = CheckoutPage(page)
+    checkout.goto()
+    return checkout
 
 
 # ---------------------------------------------------------------------------

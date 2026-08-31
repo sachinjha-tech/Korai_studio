@@ -25,7 +25,7 @@ def account_page(page):
     return page
 
 
-@pytest.mark.order(80)
+@pytest.mark.order(104)
 @pytest.mark.case("positive", "Sign out from the account page returns to the sign-in page")
 def test_logout_signs_out_from_account_page(account_page):
     """Clicking 'Sign out' ends the session and lands back on the sign-in page."""
@@ -47,7 +47,7 @@ def test_logout_signs_out_from_account_page(account_page):
     expect(header_after).to_contain_text("Sign in", ignore_case=True, timeout=15000)
 
 
-@pytest.mark.order(81)
+@pytest.mark.order(105)
 @pytest.mark.case("negative", "Protected account page is blocked after logout")
 def test_session_cleared_after_logout(page):
     """After signing out, /account bounces to the login page with a next target."""

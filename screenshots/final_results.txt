@@ -1,8 +1,8 @@
 ======================================================================
  Korai Studio — UI Test Run Summary
- Finished at: 2026-08-31 13:29:39
+ Finished at: 2026-08-31 16:46:55
  Exit status: 0
- Log file: C:\Users\sachin.jha\OneDrive - Celestial Systems\Documents\Python learning\Korai_studio\reports\logs\korai_run_20260831_132749.log
+ Log file: C:\Users\sachin.jha\OneDrive - Celestial Systems\Documents\Python learning\Korai_studio\reports\logs\korai_run_20260831_164029.log
 ======================================================================
 
 #    Scenario  Result   Test
@@ -157,13 +157,97 @@
 50   POSITIVE  PASSED   The header Bag link opens the cart page, never the checkout/payment flow
           test    : tests/test_navigation.py::test_cart_link_goes_to_bag_not_checkout[chromium]
 
-51   POSITIVE  PASSED   Sign out from the account page returns to the sign-in page
+51   POSITIVE  PASSED   Short Kurtis page loads with the Newest sort applied
+          test    : tests/test_purchase_flow.py::test_short_kurtis_page_applies_newest_sort[chromium]
+
+52   POSITIVE  PASSED   A product opens with size selector and Add to bag
+          test    : tests/test_purchase_flow.py::test_open_product_shows_size_and_add_to_bag[chromium]
+
+53   POSITIVE  PASSED   Adding to the bag redirects to the cart page
+          test    : tests/test_purchase_flow.py::test_add_to_bag_redirects_to_cart[chromium]
+
+54   POSITIVE  PASSED   The cart lists the added product with size, qty and price
+          test    : tests/test_purchase_flow.py::test_cart_shows_added_product_and_checkout_link[chromium]
+
+55   POSITIVE  PASSED   Navigating to checkout reaches the payment page
+          test    : tests/test_purchase_flow.py::test_checkout_page_reachable_with_payment_form[chromium]
+
+56   NEGATIVE  PASSED   Place Order is never submitted — payment is not executed
+          test    : tests/test_purchase_flow.py::test_payment_is_not_executed[chromium]
+
+57   POSITIVE  PASSED   The checkout page's Place Order label shows the order amount
+          test    : tests/test_purchase_flow.py::test_checkout_place_order_shows_amount[chromium]
+
+58   POSITIVE  PASSED   Cart is cleaned up so the next run starts fresh
+          test    : tests/test_purchase_flow.py::test_cart_cleaned_up_after_purchase_flow[chromium]
+
+59   POSITIVE  PASSED   Search box filters results and lands on /search
+          test    : tests/test_search.py::test_search_page_loads_and_submits[chromium]
+
+60   POSITIVE  PASSED   Found results show matching product cards
+          test    : tests/test_search.py::test_search_found_results_show_cards[chromium]
+
+61   NEGATIVE  PASSED   No results produces a friendly message
+          test    : tests/test_search.py::test_search_no_results_shows_message[chromium]
+
+62   EDGE      PASSED   Empty query does not crash and keeps the search box
+          test    : tests/test_search.py::test_search_empty_query_stays_clean[chromium]
+
+63   EDGE      PASSED   A very long query is clamped to the input max length
+          test    : tests/test_search.py::test_search_long_query_respects_maxlength[chromium]
+
+64   POSITIVE  PASSED   Search results link to valid product pages
+          test    : tests/test_search.py::test_search_result_links_open_products[chromium]
+
+65   NEGATIVE  PASSED   Search card name matches the product page title
+          test    : tests/test_search.py::test_search_card_name_matches_product[chromium]
+
+66   POSITIVE  PASSED   The Saved page loads with a helpful empty state
+          test    : tests/test_wishlist.py::test_wishlist_empty_state[chromium]
+
+67   POSITIVE  PASSED   Save for later adds an item to the wishlist
+          test    : tests/test_wishlist.py::test_save_product_to_wishlist[chromium]
+
+68   POSITIVE  PASSED   The saved item is the correct product
+          test    : tests/test_wishlist.py::test_wishlist_shows_correct_product[chromium]
+
+69   POSITIVE  PASSED   A saved item is reflected on the Saved page heart
+          test    : tests/test_wishlist.py::test_wishlist_heart_state_reflected[chromium]
+
+70   NEGATIVE  PASSED   Removing the item empties the wishlist again
+          test    : tests/test_wishlist.py::test_remove_from_wishlist[chromium]
+
+71   POSITIVE  PASSED   The product page shows title, price and size options
+          test    : tests/test_product.py::test_product_page_shows_title_price_sizes[chromium]
+
+72   POSITIVE  PASSED   Fabric and Delivery accordions are present and expandable
+          test    : tests/test_product.py::test_product_info_accordions_available[chromium]
+
+73   POSITIVE  PASSED   Pincode check confirms delivery availability
+          test    : tests/test_product.py::test_product_delivery_pincode_check[chromium]
+
+74   POSITIVE  PASSED   The size guide modal opens and closes
+          test    : tests/test_product.py::test_product_size_guide_modal[chromium]
+
+75   POSITIVE  PASSED   Track-order page loads with number and phone fields
+          test    : tests/test_track_order.py::test_track_order_page_loads[chromium]
+
+76   NEGATIVE  PASSED   Submitting an unknown order shows a graceful message
+          test    : tests/test_track_order.py::test_track_order_unknown_order_handled[chromium]
+
+77   NEGATIVE  PASSED   Empty submission is handled gracefully too
+          test    : tests/test_track_order.py::test_track_order_empty_submission_handled[chromium]
+
+78   EDGE      PASSED   Phone and order number fields enforce a max length
+          test    : tests/test_track_order.py::test_track_order_inputs_clamp_to_max_length[chromium]
+
+79   POSITIVE  PASSED   Sign out from the account page returns to the sign-in page
           test    : tests/test_logout.py::test_logout_signs_out_from_account_page[chromium]
 
-52   NEGATIVE  PASSED   Protected account page is blocked after logout
+80   NEGATIVE  PASSED   Protected account page is blocked after logout
           test    : tests/test_logout.py::test_session_cleared_after_logout[chromium]
 
 ======================================================================
- TOTAL: 52   PASSED: 52   FAILED: 0   SKIPPED: 0
- SCENARIOS: POSITIVE: 41   NEGATIVE: 7   EDGE: 4
+ TOTAL: 80   PASSED: 80   FAILED: 0   SKIPPED: 0
+ SCENARIOS: POSITIVE: 60   NEGATIVE: 13   EDGE: 7
 ======================================================================
