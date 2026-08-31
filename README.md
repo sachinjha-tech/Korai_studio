@@ -15,15 +15,17 @@ Korai_studio/
 ├── reports/                 # HTML test reports (auto-generated)
 ├── pages/                   # Page Object Models
 │   ├── __init__.py
-│   ├── home_page.py         # HomePage — homepage + navigation
+│   ├── home_page.py         # HomePage — homepage + navigation + scroll/links
 │   ├── login_page.py        # LoginPage — sign-in form
-│   └── register_page.py     # RegisterPage — create-account form
+│   ├── register_page.py     # RegisterPage — create-account form
+│   └── shop_page.py         # ShopPage — product grid + filter & sort panel
 └── tests/                   # Test suites
     ├── __init__.py
-    ├── test_homepage.py     # Homepage UI checks
-    ├── test_navigation.py   # Main navigation + dropdown behaviour
-    ├── test_login.py        # Login (sign-in) form checks
-    └── test_registration.py # Registration form checks
+    ├── test_registration.py # Registration flow (step 1)
+    ├── test_login.py        # Login as sachin (step 2)
+    ├── test_homepage.py     # Homepage scroll + link validation (step 3)
+    ├── test_shop.py         # Shop filter & sort checks (step 4)
+    └── test_navigation.py   # Main navigation + dropdown behaviour
 ```
 
 ## Prerequisites
@@ -76,8 +78,8 @@ pytest --headed=False
 - **Final results summary** — a per-test result recap is written to
   `screenshots/final_results.txt` after every run.
 - **Deterministic execution order** — suites run in a fixed sequence
-  (`registration → login → homepage → navigation`, with failed login before
-  the successful login) via `pytest-order` markers.
+  (`registration → login → homepage → shop → navigation`) via `pytest-order`
+  markers.
 
 All of the above are configured in `pytest.ini` and `conftest.py`:
 
@@ -100,18 +102,37 @@ Page objects expose locators and actions (e.g. `goto()`, `click_nav()`,
 `fill_form()`, `submit()`). Tests request a ready page object via fixtures
 defined in `conftest.py` (`home_page`, `login_page`, `register_page`).
 
+## Test flow
+
+The suite runs as a single end-to-end journey (one browser session):
+
+1. **Register** — the registration page is validated once (fields,
+   constraints, cross-links); no real account is created.
+2. **Login as sachin** — the sign-in form is validated, then sachin's
+   credentials log the session in. The session stays signed in for the rest.
+3. **Homepage** — while signed in, the page is scrolled top-to-bottom and
+   back, and every link on the homepage is validated (well-formed hrefs and
+   internal links resolving to a live page).
+4. **Shop filters** — the shop filter & sort panel is exercised (sort by
+   price, colour, design, price range) and the grid / querystring are verified.
+
 ## Test coverage
 
 - **Homepage** — page loads, logo/title visible, announcement bar, hero
-  carousel, featured products.
+  carousel, featured products, signed-in header, full-page scroll, all-links
+  validation.
+- **Shop** — page loads signed in, filter panel widgets, sort by price
+  (low/high), colour and design filters, price-range filter, reset to default.
 - **Navigation** — primary nav links navigate to the correct pages, Collections
   dropdown (and its sub-group) reveal links, cart link goes to the bag — never
   into checkout/payment flows.
 - **Registration** — page loads, field configuration, reachable from sign-in,
-  mismatched passwords rejected.
+  mismatched passwords rejected; plus positive/negative/edge/boundary cases
+  (valid form accepted, empty/invalid-email blocked, password min=8 boundary,
+  field max-length clamping, email variants).
 - **Login** — page loads, field configuration, sign-in button, forgot-password
   and create-account links, reachable from header/register, invalid credentials
-  rejected.
+  rejected, empty/malformed-email blocked, valid credential login (sachin).
 
 ## Reports & screenshots
 
@@ -119,7 +140,11 @@ After a run:
 
 - `reports/report.html` — full HTML test report.
 - `screenshots/*.png` — screenshot of the page at the moment of any failure.
-- `screenshots/final_results.txt` — summary of every test's final result.
+- `screenshots/final_results.txt` — a scenario-aware report: each test listed
+  as `# scenario result title` with test id + details, plus totals and a
+  POSITIVE / NEGATIVE / EDGE scenario breakdown. Use the `@pytest.mark.case`
+  marker to tag a test (e.g. `@pytest.mark.case("negative", "optional title")`);
+  unmarked tests default to POSITIVE with their docstring as the title.
 
 Both are git-ignored (`reports/`) or git-tracked via `.gitkeep` (`screenshots/`)
 as appropriate.

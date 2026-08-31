@@ -83,7 +83,39 @@ class HomePage:
         """The scrolling announcement bar at the very top of the page."""
         return self.page.locator("div.announce")
 
+    def footer(self):
+        """The page footer."""
+        return self.page.locator("footer").first
+
+    def all_links(self):
+        """Every <a> element on the current page that carries an href."""
+        return self.page.locator("a[href]")
+
     # -- actions ------------------------------------------------------------
+
+    def scroll_to_bottom(self, step=700):
+        """Smoothly wheel-scroll the page down until the footer is reached."""
+        self.page.mouse.move(400, 400)
+        self.page.wait_for_timeout(100)
+        for _ in range(60):
+            self.page.mouse.wheel(0, step)
+            self.page.wait_for_timeout(80)
+            at_bottom = self.page.evaluate(
+                "() => window.scrollY + window.innerHeight >= "
+                "document.documentElement.scrollHeight - 10"
+            )
+            if at_bottom:
+                break
+        self.footer().wait_for(state="visible")
+
+    def scroll_to_top(self, step=700):
+        """Wheel-scroll the page back up until it reaches the very top."""
+        self.page.mouse.move(400, 400)
+        for _ in range(60):
+            self.page.mouse.wheel(0, -step)
+            self.page.wait_for_timeout(80)
+            if self.page.evaluate("() => window.scrollY <= 0"):
+                break
 
     def click_nav(self, text):
         """Click a top-level navigation item and wait for the page to settle."""

@@ -46,14 +46,48 @@ def login_page(page):
     return login
 
 
+def _case_info(item):
+    """Return (kind, title, detail) that describe a test's scenario.
+
+    `kind` comes from the optional `case` marker (POSITIVE / NEGATIVE / EDGE)
+    and defaults to POSITIVE. `title`/`detail` fall back to the docstring.
+    """
+    doc = (item.function.__doc__ or "").strip()
+    doc_lines = [ln.strip() for ln in doc.splitlines() if ln.strip()]
+    title = doc_lines[0].rstrip(".") if doc_lines else item.name.replace("_", " ")
+    detail = " ".join(doc_lines[1:]).strip() if len(doc_lines) > 1 else ""
+
+    kind = "POSITIVE"
+    marker = item.get_closest_marker("case")
+    if marker is not None:
+        if marker.args:
+            kind = str(marker.args[0]).upper()
+            if len(marker.args) > 1:
+                title = str(marker.args[1])
+        elif marker.kwargs.get("kind"):
+            kind = str(marker.kwargs["kind"]).upper()
+            if marker.kwargs.get("title"):
+                title = str(marker.kwargs["title"])
+    return kind, title, detail
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    """Capture a screenshot on failure and record the result of each test."""
+    """Capture a screenshot on failure and record each test's result/scenario."""
     outcome = yield
     report = outcome.get_result()
 
     if report.when == "call":
-        _results[item.nodeid] = report.outcome
+        if item.nodeid not in _results:
+            kind, title, detail = _case_info(item)
+            _results[item.nodeid] = {
+                "kind": kind,
+                "title": title,
+                "detail": detail,
+                "outcome": report.outcome,
+            }
+        else:
+            _results[item.nodeid]["outcome"] = report.outcome
 
         if report.failed:
             page = item.funcargs.get("page")
@@ -79,35 +113,45 @@ def pytest_runtest_makereport(item, call):
 
 
 def pytest_sessionfinish(session, exitstatus):
-    """Write a final results summary into the screenshots folder."""
+    """Write a scenario-aware test report into the screenshots folder."""
     SHOT_DIR.mkdir(parents=True, exist_ok=True)
     summary_path = SHOT_DIR / "final_results.txt"
 
     lines = [
-        "=" * 62,
+        "=" * 70,
         " Korai Studio — UI Test Run Summary",
         f" Finished at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         f" Exit status: {exitstatus}",
-        "=" * 62,
+        "=" * 70,
         "",
-        f"{'#':<4} {'Test':<62} Result",
-        "-" * 78,
+        f"{'#':<4} {'Scenario':<9} {'Result':<8} Test",
+        "-" * 70,
     ]
 
-    passed = sum(1 for r in _results.values() if r == "passed")
-    failed = sum(1 for r in _results.values() if r == "failed")
-    skipped = sum(1 for r in _results.values() if r == "skipped")
+    counts = {}
+    for i, (nodeid, info) in enumerate(_results.items(), start=1):
+        kind = info["kind"]
+        counts[kind] = counts.get(kind, 0) + 1
+        outcome = info["outcome"].upper()
+        lines.append(f"{i:<4} {kind:<9} {outcome:<8} {info['title']}")
+        lines.append(f"          test    : {nodeid}")
+        if info["detail"]:
+            lines.append(f"          details : {info['detail']}")
+        lines.append("")
 
-    for i, (nodeid, result) in enumerate(_results.items(), start=1):
-        lines.append(f"{i:<4} {nodeid:<62} {result.upper()}")
+    passed = sum(1 for r in _results.values() if r["outcome"] == "passed")
+    failed = sum(1 for r in _results.values() if r["outcome"] == "failed")
+    skipped = sum(1 for r in _results.values() if r["outcome"] == "skipped")
+
+    scenario = "   ".join(f"{k}: {counts.get(k, 0)}" for k in ("POSITIVE", "NEGATIVE", "EDGE"))
 
     lines += [
-        "",
-        "=" * 62,
+        "=" * 70,
         f" TOTAL: {len(_results)}   PASSED: {passed}   FAILED: {failed}   "
         f"SKIPPED: {skipped}",
-        "=" * 62,
+        f" SCENARIOS: {scenario}",
+        "=" * 70,
     ]
 
     summary_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"\n[conftest] Final results written to {summary_path}")
+    print(f"\n[conftest] Report written to {summary_path}")
