@@ -5,6 +5,8 @@ product page itself: title, price, size options, info accordions, delivery
 pincode check and the size-guide modal.
 """
 
+import re
+
 import pytest
 from playwright.sync_api import expect
 
@@ -29,7 +31,11 @@ def test_product_page_shows_title_price_sizes(page):
     page.wait_for_load_state("networkidle")
 
     expect(page.locator("main h1").first).to_have_text(PRODUCT_NAME)
-    assert page.locator("main").inner_text().find("₹") != -1, "expected a price"
+
+    # A well-formed price: a ₹ followed by digits (e.g. ₹799).
+    assert re.search(r"₹\s*\d+", page.locator("main").inner_text()), (
+        "expected a rupee-denominated price on the product page"
+    )
 
     expect(page.locator(SIZE_RADIO).first).to_be_visible()
     assert page.locator(f"{SIZE_RADIO}:checked").count() > 0, (
@@ -72,8 +78,9 @@ def test_product_delivery_pincode_check(page):
 
     text = page.locator("main").inner_text()
     assert "Delivers to" in text, "expected a delivery-area confirmation"
-    assert "dispatched in" in text or "days" in text.lower(), (
-        "expected dispatch timing in the delivery message"
+    # Dispatch timing must be concrete: e.g. "dispatched in 5–7 days".
+    assert re.search(r"dispatched\s+in\s+\d+\s*[–-]\s*\d+\s*days", text, re.IGNORECASE), (
+        "expected a concrete dispatch timing (e.g. 'dispatched in 5–7 days')"
     )
 
 

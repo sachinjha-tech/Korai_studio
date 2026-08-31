@@ -12,6 +12,7 @@ import pytest
 from playwright.sync_api import expect
 
 from pages.login_page import LoginPage
+from utils import USER_EMAIL, USER_PASSWORD
 
 
 def url_path(url):
@@ -110,7 +111,7 @@ def test_login_negative_invalid_email_format_is_blocked(login_page):
 @pytest.mark.case("edge", "A correctly formatted email is accepted by the form")
 def test_login_edge_valid_email_format_accepted(login_page):
     """A well-formed email address passes native validation."""
-    login_page.fill_form(email="sachinjha.765@gmail.com", password="anything")
+    login_page.fill_form(email=USER_EMAIL, password="anything")
     assert login_page.email_field().evaluate("e => e.checkValidity()")
     assert login_page.form().evaluate("f => f.checkValidity()")
 
@@ -131,7 +132,7 @@ def test_submit_with_invalid_credentials_is_rejected(login_page):
 )
 def test_submit_with_valid_credentials_logs_in(login_page):
     """A valid username/password logs the user in and lands on their account."""
-    login_page.fill_form(email="sachinjha.765@gmail.com", password="Sachin@123")
+    login_page.fill_form(email=USER_EMAIL, password=USER_PASSWORD)
     login_page.submit()
     # On success the app redirects to the account page and greets the user.
     assert url_path(login_page.page.url) == "/account"

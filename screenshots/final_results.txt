@@ -1,13 +1,25 @@
 ======================================================================
  Korai Studio — UI Test Run Summary
- Finished at: 2026-08-31 17:42:15
+ Finished at: 2026-08-31 18:44:03
  Exit status: 0
- Log file: C:\Users\sachin.jha\OneDrive - Celestial Systems\Documents\Python learning\Korai_studio\reports\logs\korai_run_20260831_174215.log
+ Log file: C:\Users\sachin.jha\OneDrive - Celestial Systems\Documents\Python learning\Korai_studio\reports\logs\korai_run_20260831_184348.log
 ======================================================================
 
 #    Scenario  Result   Test
 ----------------------------------------------------------------------
+1    POSITIVE  PASSED   The product page shows title, price and size options
+          test    : tests/test_product.py::test_product_page_shows_title_price_sizes[chromium]
+
+2    POSITIVE  PASSED   Fabric and Delivery accordions are present and expandable
+          test    : tests/test_product.py::test_product_info_accordions_available[chromium]
+
+3    POSITIVE  PASSED   Pincode check confirms delivery availability
+          test    : tests/test_product.py::test_product_delivery_pincode_check[chromium]
+
+4    POSITIVE  PASSED   The size guide modal opens and closes
+          test    : tests/test_product.py::test_product_size_guide_modal[chromium]
+
 ======================================================================
- TOTAL: 0   PASSED: 0   FAILED: 0   SKIPPED: 0
- SCENARIOS: POSITIVE: 0   NEGATIVE: 0   EDGE: 0
+ TOTAL: 4   PASSED: 4   FAILED: 0   SKIPPED: 0
+ SCENARIOS: POSITIVE: 4   NEGATIVE: 0   EDGE: 0
 ======================================================================

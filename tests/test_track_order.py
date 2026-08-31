@@ -7,6 +7,11 @@ used, so the 'not found' message is the expected outcome for submissions.
 
 import pytest
 from playwright.sync_api import expect
+from urllib.parse import urlparse
+
+
+def url_path(url: str) -> str:
+    return urlparse(url).path
 
 TRACK_PATH = "/track-order"
 ORDER_FORM = 'form[action="/order/verify"]'
@@ -35,6 +40,14 @@ def test_track_order_page_loads(page):
     # Constraints are configured on the inputs.
     assert page.locator(NUMBER_INPUT).get_attribute("maxlength")
     assert page.locator(PHONE_INPUT).get_attribute("maxlength")
+    # Both fields must be required so an empty submission is blocked
+    # client-side rather than being accepted and reported as "not found".
+    assert page.locator(NUMBER_INPUT).get_attribute("required") is not None, (
+        "order number input is missing the required attribute"
+    )
+    assert page.locator(PHONE_INPUT).get_attribute("required") is not None, (
+        "phone input is missing the required attribute"
+    )
 
 
 @pytest.mark.order(101)
@@ -55,9 +68,15 @@ def test_track_order_unknown_order_handled(page):
 
 
 @pytest.mark.order(102)
-@pytest.mark.case("negative", "Empty submission is handled gracefully too")
+@pytest.mark.case("negative", "Empty submission is blocked — no navigation to /order/verify")
 def test_track_order_empty_submission_handled(page):
-    """Submitting with empty fields stays on the flow with a clear message."""
+    """Empty input should be blocked client-side, so the user stays put.
+
+    The inputs are marked required (see the order-100 positive test), so an
+    empty submit must not reach /order/verify. This currently fails on the
+    live site, which lacks the required attributes and treats an empty submit
+    as "order not found" — surfacing that validation defect.
+    """
     page.goto(TRACK_PATH)
     page.wait_for_load_state("networkidle")
 
@@ -65,8 +84,11 @@ def test_track_order_empty_submission_handled(page):
         page.locator(ORDER_FORM).locator('button[type="submit"]').click()
     page.wait_for_load_state("networkidle")
 
-    text = page.locator("main").inner_text()
-    assert NOT_FOUND_MSG in text, "expected a graceful response for empty input"
+    # Correct behaviour: required fields block the submit, so we stay on the
+    # track-order page rather than navigating to /order/verify with empty data.
+    assert "/order/verify" not in page.url or url_path(page.url) == TRACK_PATH, (
+        f"empty submit should be blocked, got navigation to {page.url}"
+    )
 
 
 @pytest.mark.order(103)

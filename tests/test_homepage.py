@@ -12,8 +12,7 @@ import pytest
 from playwright.sync_api import expect
 
 from pages.home_page import HomePage
-
-ROOT = "https://www.thekoraistudio.com"
+from utils import BASE_URL as ROOT
 
 
 @pytest.mark.order(50)

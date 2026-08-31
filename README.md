@@ -8,6 +8,7 @@ built with **pytest-playwright** and the **Page Object Model (POM)**.
 ```
 Korai_studio/
 ├── conftest.py              # Session-scoped browser/page, run logger + screenshot hook
+├── utils.py                 # Central config: BASE_URL + login credentials/helpers
 ├── pytest.ini               # Pytest config: base_url, headed mode, HTML report
 ├── requirements.txt         # Python dependencies
 ├── .gitignore
@@ -108,6 +109,24 @@ base_url = https://www.thekoraistudio.com
 addopts = --headed --html=reports/report.html --self-contained-html
 ```
 
+## Configuration (`utils.py`)
+
+Environment details live in one place (`utils.py`) so both the browser/UI and
+API layers read the same source of truth:
+
+```python
+from utils import BASE_URL, USER_EMAIL, USER_PASSWORD, USER, url
+```
+
+- `BASE_URL` — the site under test (`https://www.thekoraistudio.com`).
+- `USER` / `USER_EMAIL` / `USER_PASSWORD` / `USER_NAME` — the sign-in user.
+- `url(path)` — join a path against `BASE_URL`.
+
+To point the suite at another environment, update `BASE_URL` here (and the
+matching `base_url` in `pytest.ini`); to change the sign-in user, update `USER`.
+The API layer defaults its base URL and the login flow its credentials from
+this module.
+
 ## Page Object Model
 
 Each page is encapsulated in a class under `pages/` so tests interact with
@@ -121,8 +140,7 @@ meaningful methods instead of raw CSS/text selectors:
 - `pages/checkout_page.py` — `CheckoutPage`
 
 Page objects expose locators and actions (e.g. `goto()`, `click_nav()`,
-`fill_form()`, `submit()`, `open_checkout()`, `clear_cart()`). Tests request a
-ready page object via fixtures defined in `conftest.py` (`home_page`,
+`fill_form()`, `submit()`, `open_checkout()`, `clear_cart()`). Tests request aready page object via fixtures defined in `conftest.py` (`home_page`,
 `login_page`, `register_page`, `cart_page`, `checkout_page`).
 
 ## Test flow

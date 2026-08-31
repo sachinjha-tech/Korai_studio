@@ -18,18 +18,13 @@ state changes:
 
 import re
 
-EMPTY = re.compile(r"\S")
-
-_CREDS = {
-    "email": "sachinjha.765@gmail.com",
-    "password": "Sachin@123",
-}
+from utils import BASE_URL, USER_EMAIL, USER_PASSWORD
 
 
 class KoraiAPI:
     """A session-aware HTTP client with small, descriptive methods."""
 
-    def __init__(self, request, base_url: str):
+    def __init__(self, request, base_url: str = BASE_URL):
         self.request = request
         self.base_url = base_url.rstrip("/")
 
@@ -58,8 +53,7 @@ class KoraiAPI:
 
     # -- form-backed endpoints ----------------------------------------------
 
-    def login(self, email: str = _CREDS["email"],
-              password: str = _CREDS["password"]):
+    def login(self, email: str = USER_EMAIL, password: str = USER_PASSWORD):
         """POST /account/login (form-encoded). Returns the Response."""
         return self.request.post(
             self._url("/account/login"),

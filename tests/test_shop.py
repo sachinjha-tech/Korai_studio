@@ -48,21 +48,38 @@ def test_shop_filter_panel_opens_and_lists_widgets(shop_page):
 @pytest.mark.order(62)
 def test_sort_by_price_low_to_high(shop_page):
     """Sorting by lowest price reorders the grid ascending."""
+    # Baseline: the default ('Newest') order the grid shows before sorting.
+    baseline = shop_page.sale_prices()
+    assert len(baseline) >= 2
+
     shop_page.set_sort("price-low")
     assert shop_page.query_param("sort") == "price-low"
     prices = shop_page.sale_prices()
     assert len(prices) >= 2
     assert prices == sorted(prices)
+    # Prove the DOM was actually re-ordered, not just read back as sorted:
+    # the grid must not still be in the default order.
+    if len(set(baseline)) > 1:
+        assert prices != baseline, "grid did not re-order after sorting"
+
+    # Prices must be well-formed positive amounts.
+    assert all(isinstance(p, int) and p > 0 for p in prices)
 
 
 @pytest.mark.order(63)
 def test_sort_by_price_high_to_low(shop_page):
     """Sorting by highest price reorders the grid descending."""
+    baseline = shop_page.sale_prices()
+    assert len(baseline) >= 2
+
     shop_page.set_sort("price-high")
     assert shop_page.query_param("sort") == "price-high"
     prices = shop_page.sale_prices()
     assert len(prices) >= 2
     assert prices == sorted(prices, reverse=True)
+    if len(set(baseline)) > 1:
+        assert prices != baseline, "grid did not re-order after sorting"
+    assert all(isinstance(p, int) and p > 0 for p in prices)
 
 
 @pytest.mark.order(64)

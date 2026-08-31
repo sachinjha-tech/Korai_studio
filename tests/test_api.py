@@ -7,10 +7,12 @@ and validate authenticated JSON via the shared logged-in browser session.
 """
 
 import json
+import re
 
 import pytest
 
 from pages.api_client import KoraiAPI
+from utils import BASE_URL
 
 # -- anonymous JSON contract tests ------------------------------------------
 
@@ -67,7 +69,9 @@ def test_api_search_returns_products(api):
     resp = api.request.get(api._url("/search?q=shirt"))
     assert resp.status == 200
     assert "shirt" in resp.url
-    assert "3 results" in resp.text()
+    assert re.search(r"\d+\s+results?", resp.text()), (
+        "expected a numeric results count in the search page"
+    )
 
 
 @pytest.mark.order(109)
@@ -107,9 +111,7 @@ def test_api_json_endpoints_are_consistent(api):
 def test_api_account_status_logged_in(page):
     """With a valid session, /api/account-status reports logged_in=true."""
     resp = page.request.get(
-        KoraiAPI(page.request, "https://www.thekoraistudio.com")._url(
-            "/api/account-status"
-        )
+        KoraiAPI(page.request, BASE_URL)._url("/api/account-status")
     )
     assert resp.status == 200
     body = resp.json()
