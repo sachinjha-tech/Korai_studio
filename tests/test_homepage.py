@@ -1,4 +1,4 @@
-"""Homepage UI tests for https://shop.thekoraistudio.com/.
+"""Homepage UI tests for https://www.thekoraistudio.com/.
 
 Covers page load, branding/logo, announcement bar, hero carousel and primary
 navigation — without navigating into checkout or payment flows.

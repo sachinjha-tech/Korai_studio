@@ -1,6 +1,6 @@
 # Korai Studio — UI Automation (pytest + Playwright + Page Object Model)
 
-Automated UI tests for the live storefront **https://shop.thekoraistudio.com/**,
+Automated UI tests for the live storefront **https://www.thekoraistudio.com/**,
 built with **pytest-playwright** and the **Page Object Model (POM)**.
 
 ## Project structure
@@ -83,7 +83,7 @@ All of the above are configured in `pytest.ini` and `conftest.py`:
 
 ```ini
 [pytest]
-base_url = https://shop.thekoraistudio.com
+base_url = https://www.thekoraistudio.com
 addopts = --headed --html=reports/report.html --self-contained-html
 ```
 

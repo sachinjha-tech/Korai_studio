@@ -1,4 +1,4 @@
-"""Navigation UI tests for https://shop.thekoraistudio.com/.
+"""Navigation UI tests for https://www.thekoraistudio.com/.
 
 Verifies clicks on primary nav items navigate to the right pages, the brand
 logo returns home, the Collections dropdown reveals its links, and the header
@@ -31,7 +31,7 @@ def test_logo_navigates_back_home(home_page):
     assert home_page.page.url.endswith("/shop")
     home_page.logo().click()
     home_page.page.wait_for_load_state("networkidle")
-    assert home_page.page.url.rstrip("/").endswith("shop.thekoraistudio.com")
+    assert home_page.page.url.rstrip("/").endswith("www.thekoraistudio.com")
 
 
 @pytest.mark.order(42)

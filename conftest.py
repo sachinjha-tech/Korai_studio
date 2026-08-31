@@ -61,13 +61,21 @@ def pytest_runtest_makereport(item, call):
                 SHOT_DIR.mkdir(parents=True, exist_ok=True)
                 nodeid = re.sub(r"[^A-Za-z0-9_.-]", "_", item.nodeid)
                 shot_path = SHOT_DIR / f"{nodeid}.png"
-                page.screenshot(path=str(shot_path), type="png")
                 try:
-                    from pytest_html import extras
-                    extra = extras.image(str(shot_path))
-                    report.extras = getattr(report, "extras", []) + [extra]
-                except ImportError:
-                    pass
+                    # A short timeout keeps a hung page from masking the real
+                    # failure with an INTERNALERROR.
+                    page.screenshot(
+                        path=str(shot_path), type="png", timeout=5000
+                    )
+                except Exception as exc:  # pragma: no cover - best effort only
+                    print(f"[conftest] Screenshot failed for {nodeid}: {exc}")
+                else:
+                    try:
+                        from pytest_html import extras
+                        extra = extras.image(str(shot_path))
+                        report.extras = getattr(report, "extras", []) + [extra]
+                    except ImportError:
+                        pass
 
 
 def pytest_sessionfinish(session, exitstatus):

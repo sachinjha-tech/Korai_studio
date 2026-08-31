@@ -1,6 +1,6 @@
 """Page Object Model for the Korai Studio homepage.
 
-Encapsulates the selectors and behaviour for https://shop.thekoraistudio.com/
+Encapsulates the selectors and behaviour for https://www.thekoraistudio.com/
 so tests interact with the page through meaningful methods rather than raw
 CSS/text selectors.
 """

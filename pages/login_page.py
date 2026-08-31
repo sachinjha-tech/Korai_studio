@@ -1,6 +1,6 @@
 """Page Object Model for the Korai Studio login (sign in) page.
 
-Encapsulates the selectors and behaviour for https://shop.thekoraistudio.com/
+Encapsulates the selectors and behaviour for https://www.thekoraistudio.com/
 account/login so tests interact with the form through meaningful methods rather
 than raw CSS/text selectors.
 """
