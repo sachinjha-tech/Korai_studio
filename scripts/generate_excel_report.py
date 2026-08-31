@@ -31,6 +31,7 @@ SECTION_NAMES = {
     "test_wishlist": "Wishlist",
     "test_product": "Product Details",
     "test_track_order": "Track Order",
+    "test_api": "API Layer",
     "test_logout": "Logout",
 }
 

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from playwright.sync_api import Browser, BrowserContext, Page
+from pages.api_client import KoraiAPI
 from pages.cart_page import CartPage
 from pages.checkout_page import CheckoutPage
 from pages.home_page import HomePage
@@ -111,6 +112,14 @@ def checkout_page(page):
     checkout = CheckoutPage(page)
     checkout.goto()
     return checkout
+
+
+@pytest.fixture
+def api(playwright, base_url):
+    """A fresh, session-aware HTTP client for the API test layer."""
+    client = playwright.request.new_context(base_url=base_url)
+    yield KoraiAPI(client, base_url)
+    client.dispose()
 
 
 # ---------------------------------------------------------------------------

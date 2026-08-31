@@ -23,7 +23,8 @@ Korai_studio/
 │   ├── register_page.py     # RegisterPage — create-account form
 │   ├── shop_page.py         # ShopPage — product grid + filter & sort panel
 │   ├── cart_page.py         # CartPage — shopping bag/line items
-│   └── checkout_page.py     # CheckoutPage — address + payment form
+│   ├── checkout_page.py     # CheckoutPage — address + payment form
+│   └── api_client.py        # KoraiAPI — REST/JSON endpoint client
 └── tests/                   # Test suites
     ├── __init__.py
     ├── test_registration.py # Registration flow (step 1)
@@ -36,6 +37,7 @@ Korai_studio/
     ├── test_wishlist.py    # Saved / wishlist flow (step 8)
     ├── test_product.py     # Product detail page (step 9)
     ├── test_track_order.py # Order tracking form (step 10)
+    ├── test_api.py         # REST / JSON API smoke layer (step 11)
     └── test_logout.py       # Sign-out flow (final step)
 ```
 
@@ -95,7 +97,7 @@ pytest --headed=False
   `screenshots/final_results.txt` after every run.
 - **Deterministic execution order** — suites run in a fixed sequence
   (`registration → login → homepage → shop → navigation → purchase flow → search
-  → wishlist → product → track order → logout`) via
+  → wishlist → product → track order → API → logout`) via
   `pytest-order` markers.
 
 All of the above are configured in `pytest.ini` and `conftest.py`:
@@ -147,7 +149,11 @@ The suite runs as a single end-to-end journey (one browser session):
    check and the size-guide modal.
 9. **Track order** — the tracking form loads, handles unknown/empty numbers
    gracefully and enforces input length.
-10. **Logout** — the signed-in session ends with a sign-out from the account
+10. **API layer** — the JSON API surface is verified (`/api/cart-count`,
+    `/api/account-status`), unknown routes return 404, key pages return 200,
+    CSRF-protected POSTs reject forged tokens (403), and the authenticated
+    JSON endpoints reflect the signed-in session.
+11. **Logout** — the signed-in session ends with a sign-out from the account
     page; afterwards the protected account page redirects back to sign-in.
 
 ## Test coverage
@@ -184,6 +190,11 @@ The suite runs as a single end-to-end journey (one browser session):
 - **Track order** — page loads with the two required fields, unknown and empty
   submissions are handled gracefully (not-found message), and input max-length
   is enforced.
+- **API layer** — `GET /api/cart-count` and `GET /api/account-status` return valid
+  JSON (count int, logged_in/name), unknown API routes return 404, public pages
+  respond 200, the search URL follows the query string, CSRF-protected POSTs
+  (login/order-verify) return 403 without a valid token, and the authenticated
+  account-status echoes the signed-in user.
 
 ## Reports & screenshots
 
