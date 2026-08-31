@@ -1,3 +1,4 @@
+import logging
 import re
 from collections import OrderedDict
 from datetime import datetime
@@ -9,8 +10,56 @@ from pages.home_page import HomePage
 from pages.login_page import LoginPage
 from pages.register_page import RegisterPage
 
-SHOT_DIR = Path(__file__).parent / "screenshots"
+BASE_DIR = Path(__file__).parent
+SHOT_DIR = BASE_DIR / "screenshots"
+LOG_DIR = BASE_DIR / "reports" / "logs"
 _results = OrderedDict()
+
+# ---------------------------------------------------------------------------
+# Logging — a timestamped file per run, ready to share with stakeholders.
+# ---------------------------------------------------------------------------
+
+LOGFILE_PATH = LOG_DIR / datetime.now().strftime("korai_run_%Y%m%d_%H%M%S.log")
+
+
+def _setup_logger() -> logging.Logger:
+    logger = logging.getLogger("korai.ui")
+    if logger.handlers:
+        return logger
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    handler = logging.FileHandler(str(LOGFILE_PATH), encoding="utf-8")
+    handler.setFormatter(
+        logging.Formatter(
+            "%(asctime)s  %(levelname)-7s %(message)s", "%Y-%m-%d %H:%M:%S"
+        )
+    )
+    logger.addHandler(handler)
+    return logger
+
+
+LOGGER = _setup_logger()
+
+
+def _wire_page_logging(page: Page) -> None:
+    """Record browser console warnings/errors and failed HTTP responses."""
+    def _console(msg):
+        if msg.type in ("error", "warning"):
+            text = msg.text.strip().replace("\n", " ")[:400]
+            LOGGER.info("PAGE   console[%s]: %s", msg.type, text)
+
+    def _response(resp):
+        if resp.status >= 400:
+            LOGGER.warning("PAGE   HTTP %s %s", resp.status, resp.url)
+
+    page.on("console", _console)
+    page.on("response", _response)
+
+
+# ---------------------------------------------------------------------------
+# Shared browser session.
+# ---------------------------------------------------------------------------
 
 
 # Share a single browser context and page for the entire run so every test
@@ -22,7 +71,9 @@ def context(browser: Browser, browser_context_args: dict) -> BrowserContext:
 
 @pytest.fixture(scope="session")
 def page(context: BrowserContext) -> Page:
-    return context.new_page()
+    page = context.new_page()
+    _wire_page_logging(page)
+    return page
 
 
 @pytest.fixture
@@ -44,6 +95,11 @@ def login_page(page):
     login = LoginPage(page)
     login.goto()
     return login
+
+
+# ---------------------------------------------------------------------------
+# Scenario metadata for the report.
+# ---------------------------------------------------------------------------
 
 
 def _case_info(item):
@@ -71,11 +127,30 @@ def _case_info(item):
     return kind, title, detail
 
 
+def _capture(page, nodeid) -> Path | None:
+    """Best-effort screenshot for a test; never lets a failure escape."""
+    if page is None or page.is_closed():
+        return None
+    SHOT_DIR.mkdir(parents=True, exist_ok=True)
+    name = re.sub(r"[^A-Za-z0-9_.-]", "_", nodeid)
+    path = SHOT_DIR / f"{name}.png"
+    try:
+        # A short timeout keeps a hung page from masking the real failure.
+        page.screenshot(path=str(path), type="png", timeout=5000)
+        return path
+    except Exception as exc:  # pragma: no cover - best effort only
+        LOGGER.warning("screenshot failed for %s: %s", nodeid, exc)
+        return None
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    """Capture a screenshot on failure and record each test's result/scenario."""
+    """Log every test and capture a screenshot (pass or fail)."""
     outcome = yield
     report = outcome.get_result()
+
+    if report.when == "setup":
+        LOGGER.info("START  %s", item.nodeid)
 
     if report.when == "call":
         if item.nodeid not in _results:
@@ -89,27 +164,34 @@ def pytest_runtest_makereport(item, call):
         else:
             _results[item.nodeid]["outcome"] = report.outcome
 
-        if report.failed:
-            page = item.funcargs.get("page")
-            if page is not None and not page.is_closed():
-                SHOT_DIR.mkdir(parents=True, exist_ok=True)
-                nodeid = re.sub(r"[^A-Za-z0-9_.-]", "_", item.nodeid)
-                shot_path = SHOT_DIR / f"{nodeid}.png"
-                try:
-                    # A short timeout keeps a hung page from masking the real
-                    # failure with an INTERNALERROR.
-                    page.screenshot(
-                        path=str(shot_path), type="png", timeout=5000
-                    )
-                except Exception as exc:  # pragma: no cover - best effort only
-                    print(f"[conftest] Screenshot failed for {nodeid}: {exc}")
-                else:
-                    try:
-                        from pytest_html import extras
-                        extra = extras.image(str(shot_path))
-                        report.extras = getattr(report, "extras", []) + [extra]
-                    except ImportError:
-                        pass
+        page = item.funcargs.get("page")
+        url = getattr(page, "url", "") if page is not None else ""
+        LOGGER.info(
+            "END    %-100s scenario=%s result=%s duration=%.2fs url=%s",
+            item.nodeid,
+            _results[item.nodeid]["kind"],
+            report.outcome,
+            getattr(call, "duration", 0),
+            url,
+        )
+
+        shot_path = _capture(page, item.nodeid)
+        if shot_path is not None:
+            try:
+                from base64 import b64encode
+                from pytest_html import extras
+                payload = b64encode(shot_path.read_bytes()).decode("ascii")
+                extra = extras.image(payload, mime_type="image/png")
+                report.extras = getattr(report, "extras", []) + [extra]
+            except ImportError:
+                pass
+
+
+def pytest_sessionstart(session):
+    LOGGER.info("=" * 70)
+    LOGGER.info("SESSION START  base_url=%s", session.config.getini("base_url"))
+    LOGGER.info("log file: %s", LOGFILE_PATH)
+    LOGGER.info("=" * 70)
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -122,6 +204,7 @@ def pytest_sessionfinish(session, exitstatus):
         " Korai Studio — UI Test Run Summary",
         f" Finished at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         f" Exit status: {exitstatus}",
+        f" Log file: {LOGFILE_PATH}",
         "=" * 70,
         "",
         f"{'#':<4} {'Scenario':<9} {'Result':<8} Test",
@@ -154,4 +237,15 @@ def pytest_sessionfinish(session, exitstatus):
     ]
 
     summary_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    LOGGER.info("=" * 70)
+    LOGGER.info(
+        "SESSION END  total=%d passed=%d failed=%d skipped=%d  scenarios=%s",
+        len(_results), passed, failed, skipped,
+        scenario.replace(" ", ""),
+    )
+    LOGGER.info("report: %s", summary_path)
+    LOGGER.info("=" * 70)
+
     print(f"\n[conftest] Report written to {summary_path}")
+    print(f"[conftest] Log written to {LOGFILE_PATH}")

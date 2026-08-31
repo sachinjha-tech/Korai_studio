@@ -7,12 +7,13 @@ built with **pytest-playwright** and the **Page Object Model (POM)**.
 
 ```
 Korai_studio/
-├── conftest.py              # Session-scoped browser/page + screenshot-on-failure hook
+├── conftest.py              # Session-scoped browser/page, run logger + screenshot hook
 ├── pytest.ini               # Pytest config: base_url, headed mode, HTML report
 ├── requirements.txt         # Python dependencies
 ├── .gitignore
-├── screenshots/             # Failure screenshots (auto-generated)
-├── reports/                 # HTML test reports (auto-generated)
+├── screenshots/             # Per-test screenshots + final_results.txt (auto-generated)
+├── reports/                 # HTML report + run logs (auto-generated)
+│   └── logs/                # Timestamped per-run log files
 ├── pages/                   # Page Object Models
 │   ├── __init__.py
 │   ├── home_page.py         # HomePage — homepage + navigation + scroll/links
@@ -25,7 +26,8 @@ Korai_studio/
     ├── test_login.py        # Login as sachin (step 2)
     ├── test_homepage.py     # Homepage scroll + link validation (step 3)
     ├── test_shop.py         # Shop filter & sort checks (step 4)
-    └── test_navigation.py   # Main navigation + dropdown behaviour
+    ├── test_navigation.py   # Main navigation + dropdown behaviour
+    └── test_logout.py       # Sign-out flow (final step)
 ```
 
 ## Prerequisites
@@ -73,13 +75,18 @@ pytest --headed=False
   (self-contained, open it in any browser).
 - **Single session** — one browser window is opened and reused for the whole
   run via the session-scoped `context`/`page` fixtures.
-- **Failure screenshots** — captured automatically on test failure and saved
-  to `screenshots/`, then embedded into the HTML report.
+- **Run log** — a timestamped log file (`reports/logs/korai_run_<timestamp>.log`)
+  records each test start/end with scenario, result, duration and final URL,
+  plus browser console errors/warnings and any failed HTTP responses
+  (status ≥ 400).
+- **Screenshots** — captured on **every** test (pass or fail), saved to
+  `screenshots/<test_id>.png` and embedded inline (base64) into the HTML report,
+  so `report.html` stays a single self-contained, shareable file.
 - **Final results summary** — a per-test result recap is written to
   `screenshots/final_results.txt` after every run.
 - **Deterministic execution order** — suites run in a fixed sequence
-  (`registration → login → homepage → shop → navigation`) via `pytest-order`
-  markers.
+  (`registration → login → homepage → shop → navigation → logout`) via
+  `pytest-order` markers.
 
 All of the above are configured in `pytest.ini` and `conftest.py`:
 
@@ -115,6 +122,8 @@ The suite runs as a single end-to-end journey (one browser session):
    internal links resolving to a live page).
 4. **Shop filters** — the shop filter & sort panel is exercised (sort by
    price, colour, design, price range) and the grid / querystring are verified.
+5. **Logout** — signed-in session ends with a sign-out from the account page;
+   afterwards the protected account page redirects back to sign-in.
 
 ## Test coverage
 
@@ -133,13 +142,20 @@ The suite runs as a single end-to-end journey (one browser session):
 - **Login** — page loads, field configuration, sign-in button, forgot-password
   and create-account links, reachable from header/register, invalid credentials
   rejected, empty/malformed-email blocked, valid credential login (sachin).
+- **Logout** — sign-out from the account page returns to the sign-in page and
+  the header reverts to an anonymous state; the protected account page is no
+  longer reachable afterwards (redirects to login).
 
 ## Reports & screenshots
 
 After a run:
 
-- `reports/report.html` — full HTML test report.
-- `screenshots/*.png` — screenshot of the page at the moment of any failure.
+- `reports/report.html` — full HTML test report (self-contained: screenshots are
+  inlined as base64, so this file alone is shareable with stakeholders).
+- `reports/logs/korai_run_<timestamp>.log` — detailed run log (start/end of
+  every test with scenario, result, duration, final URL; console errors;
+  failed HTTP responses).
+- `screenshots/*.png` — screenshot of the page at the end of every test.
 - `screenshots/final_results.txt` — a scenario-aware report: each test listed
   as `# scenario result title` with test id + details, plus totals and a
   POSITIVE / NEGATIVE / EDGE scenario breakdown. Use the `@pytest.mark.case`

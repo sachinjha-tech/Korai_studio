@@ -1,7 +1,8 @@
 ======================================================================
  Korai Studio — UI Test Run Summary
- Finished at: 2026-08-31 13:09:40
+ Finished at: 2026-08-31 13:29:39
  Exit status: 0
+ Log file: C:\Users\sachin.jha\OneDrive - Celestial Systems\Documents\Python learning\Korai_studio\reports\logs\korai_run_20260831_132749.log
 ======================================================================
 
 #    Scenario  Result   Test
@@ -156,7 +157,13 @@
 50   POSITIVE  PASSED   The header Bag link opens the cart page, never the checkout/payment flow
           test    : tests/test_navigation.py::test_cart_link_goes_to_bag_not_checkout[chromium]
 
+51   POSITIVE  PASSED   Sign out from the account page returns to the sign-in page
+          test    : tests/test_logout.py::test_logout_signs_out_from_account_page[chromium]
+
+52   NEGATIVE  PASSED   Protected account page is blocked after logout
+          test    : tests/test_logout.py::test_session_cleared_after_logout[chromium]
+
 ======================================================================
- TOTAL: 50   PASSED: 50   FAILED: 0   SKIPPED: 0
- SCENARIOS: POSITIVE: 40   NEGATIVE: 6   EDGE: 4
+ TOTAL: 52   PASSED: 52   FAILED: 0   SKIPPED: 0
+ SCENARIOS: POSITIVE: 41   NEGATIVE: 7   EDGE: 4
 ======================================================================
