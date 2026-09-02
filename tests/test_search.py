@@ -12,7 +12,12 @@ from playwright.sync_api import expect
 
 SEARCH_PATH = "/search"
 SEARCH_INPUT = 'input[name="q"]'
-RESULT_CARDS = "a.card"
+RESULT_CARDS = "div.card"
+
+
+def card_link(card):
+    """The <a class="card-body"> anchor that carries the product href."""
+    return card.locator("a.card-body").first
 
 FOUND_QUERY = "shirt"
 NO_RESULT_QUERY = "zzzznothing"
@@ -57,7 +62,7 @@ def test_search_found_results_show_cards(page):
     result_text = page.locator("main").inner_text()
     assert re.search(r"\d+ results?", result_text), "expected a results count"
 
-    href = urlparse(cards.first.get_attribute("href")).path
+    href = urlparse(card_link(cards.first).get_attribute("href")).path
     assert href.startswith("/product/"), f"unexpected result link: {href}"
     assert page.locator(SEARCH_INPUT).input_value() == FOUND_QUERY
 
@@ -102,7 +107,7 @@ def test_search_result_links_open_products(page):
 
     cards = page.locator(RESULT_CARDS)
     for i in range(min(cards.count(), 3)):
-        href = cards.nth(i).get_attribute("href")
+        href = card_link(cards.nth(i)).get_attribute("href")
         assert href.startswith("/product/"), f"bad product link: {href}"
 
 

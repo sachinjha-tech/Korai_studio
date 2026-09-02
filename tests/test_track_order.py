@@ -70,22 +70,27 @@ def test_track_order_unknown_order_handled(page):
 @pytest.mark.order(102)
 @pytest.mark.case("negative", "Empty submission is blocked — no navigation to /order/verify")
 def test_track_order_empty_submission_handled(page):
-    """Empty input should be blocked client-side, so the user stays put.
+    """Empty input must be blocked client-side so the user stays put.
 
-    The inputs are marked required (see the order-100 positive test), so an
-    empty submit must not reach /order/verify. This currently fails on the
-    live site, which lacks the required attributes and treats an empty submit
-    as "order not found" — surfacing that validation defect.
+    The inputs are already required (verified in order-100). For that
+    constraint to take effect the form must NOT set novalidate — the site
+    currently ships a trailing novalidate attribute, which turns validation
+    off and lets an empty submit reach /order/verify.
     """
     page.goto(TRACK_PATH)
     page.wait_for_load_state("networkidle")
 
-    with page.expect_navigation(wait_until="load", timeout=30000):
-        page.locator(ORDER_FORM).locator('button[type="submit"]').click()
-    page.wait_for_load_state("networkidle")
+    form = page.locator(ORDER_FORM)
+    # Root cause: native validation is disabled by the form's novalidate flag.
+    assert form.get_attribute("novalidate") is None, (
+        "the track-order form sets novalidate, which cancels its required "
+        "fields — an empty submit currently navigates to /order/verify"
+    )
 
-    # Correct behaviour: required fields block the submit, so we stay on the
-    # track-order page rather than navigating to /order/verify with empty data.
+    form.locator('button[type="submit"]').click()
+    page.wait_for_timeout(1500)
+
+    # Correct behaviour: required fields block the submit, so we stay put.
     assert "/order/verify" not in page.url or url_path(page.url) == TRACK_PATH, (
         f"empty submit should be blocked, got navigation to {page.url}"
     )

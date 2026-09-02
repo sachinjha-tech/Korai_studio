@@ -9,9 +9,9 @@ import pytest
 from playwright.sync_api import expect
 
 WISHLIST_PATH = "/wishlist"
-PRODUCT = "/product/blue-yellow-stripes"
-PRODUCT_SLUG = "blue-yellow-stripes"
-PRODUCT_NAME = "Blue & Yellow Stripes"
+PRODUCT = "/product/blue-yellow-stripes-100-cotton"
+PRODUCT_SLUG = "blue-yellow-stripes-100-cotton"
+PRODUCT_NAME = "Blue & Yellow Stripes -100% Cotton"
 
 WISHLIST_TOGGLE = (
     f'[data-wishlist-toggle="{PRODUCT_SLUG}"][aria-pressed="false"]'
@@ -61,7 +61,7 @@ def test_save_product_to_wishlist(page):
     page.goto(WISHLIST_PATH)
     page.wait_for_load_state("networkidle")
 
-    cards = page.locator("a.card")
+    cards = page.locator("div.card")
     assert cards.count() >= 1, "expected a saved product on the wishlist page"
     assert page.locator('[data-wishlist-toggle][aria-pressed="true"]').count() >= 1
 
@@ -75,10 +75,10 @@ def test_wishlist_shows_correct_product(page):
     page.goto(WISHLIST_PATH)
     page.wait_for_load_state("networkidle")
 
-    first_card = page.locator("a.card").first
-    href = first_card.get_attribute("href")
+    first_card = page.locator("div.card").first
+    href = first_card.locator("a.card-body").get_attribute("href")
     assert href == PRODUCT, f"expected {PRODUCT}, got {href}"
-    expect(page.locator("a.card").first.locator(".card-name")).to_contain_text(
+    expect(page.locator("div.card").first.locator(".card-name")).to_contain_text(
         PRODUCT_NAME
     )
 

@@ -5,7 +5,10 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
-from playwright.sync_api import Browser, BrowserContext, Page
+from playwright.sync_api import Browser, BrowserContext, Page, expect
+
+# Generous global default so slow storefront responses don't trip the suite.
+expect.set_options(timeout=20_000)
 from pages.api_client import KoraiAPI
 from pages.cart_page import CartPage
 from pages.checkout_page import CheckoutPage

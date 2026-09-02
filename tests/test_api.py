@@ -56,7 +56,7 @@ def test_api_unknown_route_404(api):
 @pytest.mark.case("positive", "Key public pages respond 200 over HTTP")
 def test_api_public_pages_ok(api):
     """The main storefront pages are reachable (200)."""
-    for path in ("/", "/shop/short-kurtis", "/product/blue-yellow-stripes",
+    for path in ("/", "/shop/short-kurtis", "/product/blue-yellow-stripes-100-cotton",
                  "/track-order", "/search?q=shirt"):
         resp = api.request.get(api._url(path))
         assert resp.status == 200, f"{path} returned {resp.status}"

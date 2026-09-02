@@ -14,18 +14,19 @@ from pages.cart_page import CartPage
 from pages.checkout_page import CheckoutPage
 
 SHORT_KURTIS = "/shop/short-kurtis"
-PRODUCT = "/product/blue-yellow-stripes"
-PRODUCT_NAME = "Blue & Yellow Stripes"
+PRODUCT = "/product/blue-yellow-stripes-100-cotton"
+PRODUCT_NAME = "Blue & Yellow Stripes -100% Cotton"
 SIZE_S = "Size S"
 BASE_PRICE = "₹799"
 
 # Selectors (kept local to avoid one mega-POM for a single flow)
 SHORT_KURTIS_HEADING = "main h1"
 SORT_SELECT = 'select[name="sort"]'
-PRODUCT_CARDS = "a.card"
+PRODUCT_CARDS = "div.card"
 BUY_FORM = "#buy"
 ADD_TO_BAG = '#buy button[type="submit"][name="next"][value="cart"]'
 SIZE_RADIO = '#buy input[name="variant_id"]'
+CART_BADGE = "header [data-cart-count]"
 
 
 def sort_value(page) -> str:
@@ -34,7 +35,29 @@ def sort_value(page) -> str:
 
 def product_slug(card) -> str:
     from urllib.parse import urlparse
-    return urlparse(card.get_attribute("href")).path
+    href = card.locator("a.card-body").get_attribute("href")
+    return urlparse(href).path
+
+
+def add_to_bag(page):
+    """Submit Add to bag and wait for the AJAX /cart/add call to succeed."""
+    with page.expect_response(
+        lambda r: r.request.method == "POST" and "/cart/add" in r.url,
+        timeout=15000,
+    ):
+        page.locator(ADD_TO_BAG).first.click()
+
+
+def ensure_item_in_cart(page, cart):
+    """If the cart is empty, add the target product and return to the cart."""
+    if not cart.is_empty():
+        return
+    page.goto(PRODUCT)
+    page.wait_for_load_state("networkidle")
+    expect(page.locator("#buy")).to_be_visible(timeout=15000)
+    add_to_bag(page)
+    expect(page.locator(CART_BADGE).first).to_be_visible(timeout=10000)
+    cart.goto()
 
 
 @pytest.mark.order(76)
@@ -76,21 +99,35 @@ def test_open_product_shows_size_and_add_to_bag(page):
 
 
 @pytest.mark.order(78)
-@pytest.mark.case("positive", "Adding to the bag redirects to the cart page")
-def test_add_to_bag_redirects_to_cart(page):
-    """Submitting the Add to bag form lands on the cart page."""
+@pytest.mark.case("positive", "Adding to the bag updates the cart without leaving the page")
+def test_add_to_bag_updates_cart(page):
+    """Add to bag is AJAX now: /cart/add returns JSON and the badge updates.
+
+    The storefront used to full-page redirect to /cart after submit; it now
+    posts via fetch (the header cart badge updates in place) and only the
+    checkout page is reached through a subsequent navigation.
+    """
     page.goto(PRODUCT)
     page.wait_for_load_state("networkidle")
 
     expect(page.locator("#buy")).to_be_visible(timeout=15000)
-    with page.expect_navigation(wait_until="load", timeout=30000):
+    with page.expect_response(
+        lambda r: r.request.method == "POST" and "/cart/add" in r.url,
+        timeout=15000,
+    ) as info:
         page.locator(ADD_TO_BAG).first.click()
-    page.wait_for_load_state("networkidle")
+    response = info.value
 
-    assert page.url.rstrip("/").endswith("/cart"), (
-        f"expected to be redirected to /cart, got {page.url}"
-    )
-    expect(page.locator("main h1").first).to_contain_text("Your bag")
+    assert response.status == 200, f"/cart/add returned {response.status}"
+    data = response.json()
+    assert isinstance(data.get("count"), int) and data["count"] >= 1
+    assert data.get("size") == "S", f"expected size S, got {data.get('size')!r}"
+    assert data.get("next") == "/cart", f"unexpected next: {data.get('next')!r}"
+
+    # The header badge reflects the non-empty bag; no navigation happened.
+    expect(page.locator(CART_BADGE).first).to_be_visible(timeout=10000)
+    from urllib.parse import urlparse
+    assert urlparse(page.url).path == PRODUCT, "add-to-bag should not navigate away"
 
 
 @pytest.mark.order(79)
@@ -101,12 +138,7 @@ def test_cart_shows_added_product_and_checkout_link(page):
     cart.goto()
 
     # Always start from a known state: at least the target item present.
-    if cart.is_empty():
-        page.goto(PRODUCT)
-        page.wait_for_load_state("networkidle")
-        with page.expect_navigation(wait_until="load", timeout=30000):
-            page.locator(ADD_TO_BAG).first.click()
-        cart.goto()
+    ensure_item_in_cart(page, cart)
 
     row = cart.item_rows().first
     expect(row).to_be_visible()
@@ -127,12 +159,7 @@ def test_checkout_page_reachable_with_payment_form(page):
     cart = CartPage(page)
     cart.goto()
 
-    if cart.is_empty():
-        page.goto(PRODUCT)
-        page.wait_for_load_state("networkidle")
-        with page.expect_navigation(wait_until="load", timeout=30000):
-            page.locator(ADD_TO_BAG).first.click()
-        cart.goto()
+    ensure_item_in_cart(page, cart)
 
     cart.open_checkout()
 
@@ -178,12 +205,7 @@ def test_checkout_place_order_shows_amount(page):
     cart = CartPage(page)
     cart.goto()
 
-    if cart.is_empty():
-        page.goto(PRODUCT)
-        page.wait_for_load_state("networkidle")
-        with page.expect_navigation(wait_until="load", timeout=30000):
-            page.locator(ADD_TO_BAG).first.click()
-        cart.goto()
+    ensure_item_in_cart(page, cart)
 
     cart.open_checkout()
     checkout = CheckoutPage(page)

@@ -10,8 +10,8 @@ import re
 import pytest
 from playwright.sync_api import expect
 
-PRODUCT = "/product/blue-yellow-stripes"
-PRODUCT_NAME = "Blue & Yellow Stripes"
+PRODUCT = "/product/blue-yellow-stripes-100-cotton"
+PRODUCT_NAME = "Blue & Yellow Stripes -100% Cotton"
 
 BUY_FORM = "#buy"
 SIZE_RADIO = '#buy input[name="variant_id"]'
@@ -19,6 +19,7 @@ ADD_TO_BAG = '#buy button[type="submit"][name="next"][value="cart"]'
 BUY_NOW = '#buy button[type="submit"][name="next"][value="checkout"]'
 DELIVERY_PIN = "#delivery-pincode"
 DELIVERY_CHECK = "[data-delivery-check-btn]"
+DELIVERY_RESULT = "[data-delivery-check-result]"
 SIZE_GUIDE_OPEN = "[data-open-size-guide]"
 SIZE_GUIDE_CLOSE = "[data-close-size-guide]"
 
@@ -53,7 +54,7 @@ def test_product_info_accordions_available(page):
     page.wait_for_load_state("networkidle")
 
     summaries = page.locator("details summary")
-    labels = [s.inner_text().strip() for s in summaries.all()]
+    labels = [s.inner_text().strip().upper() for s in summaries.all()]
     assert "FABRIC" in labels, f"expected a Fabric section, got {labels}"
     assert "DELIVERY & RETURNS" in labels, f"expected Delivery section, got {labels}"
 
@@ -74,9 +75,12 @@ def test_product_delivery_pincode_check(page):
 
     page.locator(DELIVERY_PIN).fill("110001")
     page.locator(DELIVERY_CHECK).click()
-    page.wait_for_timeout(2000)
 
-    text = page.locator("main").inner_text()
+    # Wait for the JS result box to reach its final message (it briefly shows
+    # "Checking…" right after the click, so wait on the real content).
+    result = page.locator(DELIVERY_RESULT).first
+    expect(result).to_contain_text("Delivers to", timeout=15000)
+    text = result.inner_text()
     assert "Delivers to" in text, "expected a delivery-area confirmation"
     # Dispatch timing must be concrete: e.g. "dispatched in 5–7 days".
     assert re.search(r"dispatched\s+in\s+\d+\s*[–-]\s*\d+\s*days", text, re.IGNORECASE), (

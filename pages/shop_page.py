@@ -32,7 +32,7 @@ class ShopPage:
 
     def product_cards(self):
         """The product cards rendered in the grid."""
-        return self.page.locator("a.card")
+        return self.page.locator("div.card")
 
     def filters_panel(self):
         """The 'Filter & sort' sidebar panel."""

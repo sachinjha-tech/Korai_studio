@@ -51,15 +51,16 @@ def test_hero_carousel_is_rendered(home_page):
 @pytest.mark.order(54)
 def test_product_section_shows_items(home_page):
     """The homepage displays product cards in the featured section."""
-    cards = home_page.page.locator(".slider-item a.card")
+    cards = home_page.page.locator(".slider-item .card")
     assert cards.count() >= 1
     for i in range(cards.count()):
         card = cards.nth(i)
         name = card.locator(".card-name")
         assert name.is_visible()
         assert name.inner_text().strip() != ""
-        # Cards should link to same-site product pages, not checkout.
-        href = card.get_attribute("href")
+        # Cards link to same-site product pages via the card-body anchor.
+        link = card.locator("a.card-body").first
+        href = link.get_attribute("href")
         assert href is not None and href.startswith("/product/")
 
 
@@ -91,7 +92,7 @@ def test_homepage_scrolls_down_and_back_up(home_page):
     """Scrolling through the homepage reaches the footer; scrolling back to top."""
     home_page.scroll_to_bottom()
     assert home_page.footer().is_visible()
-    assert home_page.page.locator("a.card").count() >= 1
+    assert home_page.page.locator("div.card").count() >= 1
     home_page.scroll_to_top()
     assert home_page.page.evaluate("() => window.scrollY") == 0
     assert home_page.logo().is_visible()

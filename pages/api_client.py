@@ -62,7 +62,7 @@ class KoraiAPI:
 
     def add_to_cart(self, variant_id: str = "98", quantity: str = "1"):
         """POST /cart/add for a product variant (S = variant 98)."""
-        self.request.get(self._url("/product/blue-yellow-stripes"))
+        self.request.get(self._url("/product/blue-yellow-stripes-100-cotton"))
         resp = self.request.get(self._url("/account/login"))
         csrf = self.csrf_from(resp.text())
         return self.request.post(
