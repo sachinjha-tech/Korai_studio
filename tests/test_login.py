@@ -1,9 +1,9 @@
 """Login (sign in) UI tests for Korai Studio.
 
-Step 2 of the run. Covers the login page loading, field configuration,
-navigation reachability, helper links, plus positive, negative and edge cases.
-The final test logs in with sachin's credentials and keeps that session signed
-in for everything that follows (homepage, shop, navigation).
+Covers the login page loading, field configuration, navigation reachability,
+helper links, plus positive, negative and edge cases on an anonymous (logged-out)
+page. The valid-credentials case logs in as sachin; the authenticated state for
+other suites is provided independently via conftest's cached storage_state.
 """
 
 from urllib.parse import urlparse
@@ -89,17 +89,8 @@ def test_login_page_reachable_from_register(login_page):
 
 @pytest.mark.order(37)
 @pytest.mark.case(
-    "negative", "Empty sign-in is blocked — required fields fire native validation"
+    "negative", "Malformed email address is rejected by the input"
 )
-def test_login_negative_empty_submission_is_blocked(login_page):
-    """Submitting empty fields is blocked before any network request."""
-    login_page.submit()
-    assert not login_page.form().evaluate("f => f.checkValidity()")
-    assert url_path(login_page.page.url) == "/account/login"
-
-
-@pytest.mark.order(38)
-@pytest.mark.case("negative", "Malformed email address is rejected by the input")
 def test_login_negative_invalid_email_format_is_blocked(login_page):
     """A non-email string fails the type=email check on the sign-in form."""
     login_page.fill_form(email="not-an-email", password="whatever12")
@@ -107,7 +98,7 @@ def test_login_negative_invalid_email_format_is_blocked(login_page):
     assert not login_page.form().evaluate("f => f.checkValidity()")
 
 
-@pytest.mark.order(39)
+@pytest.mark.order(38)
 @pytest.mark.case("edge", "A correctly formatted email is accepted by the form")
 def test_login_edge_valid_email_format_accepted(login_page):
     """A well-formed email address passes native validation."""
@@ -116,33 +107,82 @@ def test_login_edge_valid_email_format_accepted(login_page):
     assert login_page.form().evaluate("f => f.checkValidity()")
 
 
-@pytest.mark.order(40)
-@pytest.mark.case("negative", "Incorrect credentials are rejected — no login")
-def test_submit_with_invalid_credentials_is_rejected(login_page):
-    """Submitting wrong credentials must not log in or leave the login page."""
-    login_page.fill_form(email="invalid@example.com", password="wrongpassword")
-    login_page.submit()
-    # The user is not logged in — no redirect away from the sign-in page.
-    assert url_path(login_page.page.url) == "/account/login"
+LOGIN_CASES = [
+    pytest.param(
+        "", "",
+        "empty", "/account/login",
+        "Enter your email and password.",
+        id="empty-fields",
+    ),
+    pytest.param(
+        USER_EMAIL, "wrong-password-placeholder",
+        "invalid", "/account/login",
+        "That email and password don't match.",
+        id="invalid-password",
+    ),
+    pytest.param(
+        "unregistered@example.com", "whatever123",
+        "invalid", "/account/login",
+        "That email and password don't match.",
+        id="unregistered-email",
+    ),
+    pytest.param(
+        USER_EMAIL, USER_PASSWORD,
+        "valid", "/account",
+        "",
+        id="valid-credentials",
+    ),
+]
+
+# Stable container the server renders server-side rejection/validation notes in.
+LOGIN_ERROR_BOX = "main .errors"
 
 
-@pytest.mark.order(41)
+@pytest.mark.order(39)
 @pytest.mark.case(
-    "positive", "Sachin's valid credentials log in and land on the account page"
+    "data-driven", "Login form: valid, invalid-password, unregistered-email and empty cases"
 )
-def test_submit_with_valid_credentials_logs_in(login_page):
-    """A valid username/password logs the user in and lands on their account."""
-    login_page.fill_form(email=USER_EMAIL, password=USER_PASSWORD)
+@pytest.mark.parametrize(
+    "email,password,outcome,expected_path,expected_message",
+    LOGIN_CASES,
+)
+def test_login_credentials(login_page, email, password, outcome,
+                           expected_path, expected_message):
+    """A single data-driven login test covering the main credential cases.
+
+    - valid credentials     -> redirect to /account, name shown in header
+    - invalid password      -> stays on /account/login, 'don't match' message
+    - unregistered email     -> stays on /account/login, 'don't match' message
+    - empty fields           -> stays on /account/login, 'Enter your email and
+                                password.' message
+
+    The page is (re)loaded fresh for each parameter so cases never leak state.
+    """
+    login_page.goto()
+    login_page.fill_form(email=email, password=password)
     login_page.submit()
-    # On success the app redirects to the account page and greets the user.
-    assert url_path(login_page.page.url) == "/account"
-    assert "account" in login_page.page.title().casefold()
-    heading = login_page.page.locator("main h1").first.inner_text()
-    assert "Hi" in heading or "Sachin" in heading
-    header_account = login_page.page.locator("header .account-link").first
-    # The header is rendered client-side after load, so use web-first
-    # assertions that retry until it reflects the signed-in session.
-    expect(header_account).to_have_attribute("href", "/account", timeout=15000)
-    expect(header_account).to_contain_text("sachin", ignore_case=True, timeout=15000)
-    # The sachin session is deliberately kept for the rest of the run so every
-    # downstream suite (homepage, shop, navigation) executes while signed in.
+
+    assert url_path(login_page.page.url) == expected_path, (
+        f"expected path {expected_path}, got {url_path(login_page.page.url)}"
+    )
+
+    if outcome == "valid":
+        # On success the app redirects to the account page and greets the user.
+        assert "account" in login_page.page.title().casefold()
+        heading = login_page.page.locator("main h1").first.inner_text()
+        assert "Hi" in heading or "Sachin" in heading
+        header_account = login_page.page.locator("header .account-link").first
+        # The header is rendered client-side after load, so use web-first
+        # assertions that retry until it reflects the signed-in session.
+        expect(header_account).to_have_attribute("href", "/account", timeout=15000)
+        expect(header_account).to_contain_text("sachin", ignore_case=True,
+                                              timeout=15000)
+        # This instance's session is discarded at teardown — authenticated tests
+        # downstream use the cached storage_state from conftest, not this page.
+    else:
+        # Rejected attempts surface a plain-language message and keep the user
+        # on the sign-in form (no redirect, no session is opened).
+        error_box = login_page.page.locator(LOGIN_ERROR_BOX).first
+        expect(error_box).to_be_visible(timeout=15000)
+        expect(error_box).to_contain_text(expected_message)
+        expect(login_page.form()).to_be_visible()

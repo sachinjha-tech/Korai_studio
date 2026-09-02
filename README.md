@@ -7,9 +7,9 @@ built with **pytest-playwright** and the **Page Object Model (POM)**.
 
 ```
 Korai_studio/
-├── conftest.py              # Session-scoped browser/page, run logger + screenshot hook
+├── conftest.py              # Isolated per-test browser/page, auth-state + run logging
 ├── utils.py                 # Central config: BASE_URL + login credentials/helpers
-├── pytest.ini               # Pytest config: base_url, headed mode, HTML report
+├── pytest.ini               # Pytest config: base_url, HTML report
 ├── requirements.txt         # Python dependencies
 ├── .gitignore
 ├── screenshots/             # Per-test screenshots + final_results.txt (auto-generated)
@@ -67,7 +67,7 @@ python -m playwright install chromium
 ## Running the tests
 
 ```bash
-# Run the whole suite
+# Run the whole suite sequentially (default)
 pytest
 
 # Run a single test file
@@ -76,17 +76,47 @@ pytest tests/test_registration.py
 # Run a single test
 pytest tests/test_navigation.py::test_cart_link_goes_to_bag_not_checkout
 
-# Run headless (override the default headed mode)
-pytest --headed=False
+# Run in headed mode (visible browser window)
+pytest --headed
+
+# Run in parallel (opt-in, not the default)
+pytest -n 4 --dist=loadgroup
 ```
+
+Plain `pytest` runs the full suite **sequentially and headless** by default.
+Parallel execution (`pytest -n 4 --dist=loadgroup`) is supported but not the
+default, since several tests share live account state.
+
+### Parallel execution (`pytest-xdist`)
+
+Parallel execution is available but **opt-in** (`pytest -n 4 --dist=loadgroup`)
+since several tests mutate sachin's live cart, wishlist or session state.
+- **Isolated pages** — every test gets its own fresh browser context and page
+  (function-scoped, per-test). No test shares a live page or session object,
+  so the suites never interfere even when they run concurrently.
+- **One authenticated login per worker** — the session-scoped `auth_state`
+  fixture signs in as sachin once per worker process, captures the browser
+  `storage_state`, and every authenticated test loads it as its starting state
+  (no repeated logins, no shared live session).
+- **Anonymous opt-in** — login, registration, anonymous-API and logout-over
+  flows use dedicated anonymous contexts (`anon_page`), while the default
+  `page` fixture is authenticated.
+- **Shared-account safety** — tests that mutate sachin's LIVE cart, wishlist or
+  session are tagged `@pytest.mark.xdist_group("account-state")`; with
+  `--dist=loadgroup` all of them are pinned to a single worker, so they never
+  race the same account state. Stateless tests stay ungrouped and spread across
+  the remaining workers.
+- Execution `order` markers now only categorise the report; correctness no
+  longer depends on run order (the suites are order-independent by design).
 
 ### Behaviour by default
 
-- **Headed mode** — a visible browser window opens so you can watch the run.
+- **Headless mode** — no browser window is shown during the run (pass
+  `--headed` to watch).
 - **HTML report** — generated automatically at `reports/report.html`
   (self-contained, open it in any browser).
-- **Single session** — one browser window is opened and reused for the whole
-  run via the session-scoped `context`/`page` fixtures.
+- **Sequential** — tests run one at a time in a single process. Pass
+  `-n <workers> --dist=loadgroup` for parallel execution (see above).
 - **Run log** — a timestamped log file (`reports/logs/korai_run_<timestamp>.log`)
   records each test start/end with scenario, result, duration and final URL,
   plus browser console errors/warnings and any failed HTTP responses
@@ -96,17 +126,13 @@ pytest --headed=False
   so `report.html` stays a single self-contained, shareable file.
 - **Final results summary** — a per-test result recap is written to
   `screenshots/final_results.txt` after every run.
-- **Deterministic execution order** — suites run in a fixed sequence
-  (`registration → login → homepage → shop → navigation → purchase flow → search
-  → wishlist → product → track order → API → logout`) via
-  `pytest-order` markers.
 
 All of the above are configured in `pytest.ini` and `conftest.py`:
 
 ```ini
 [pytest]
 base_url = https://www.thekoraistudio.com
-addopts = --headed --html=reports/report.html --self-contained-html
+addopts = --html=reports/report.html --self-contained-html
 ```
 
 ## Configuration (`utils.py`)
@@ -145,12 +171,16 @@ Page objects expose locators and actions (e.g. `goto()`, `click_nav()`,
 
 ## Test flow
 
-The suite runs as a single end-to-end journey (one browser session):
+Each test runs in its own isolated, authenticated browser context (authenticated
+page by default, anonymous for login/registration/logout flows). The suites
+cover the full journey:
 
 1. **Register** — the registration page is validated once (fields,
    constraints, cross-links); no real account is created.
-2. **Login as sachin** — the sign-in form is validated, then sachin's
-   credentials log the session in. The session stays signed in for the rest.
+2. **Login as sachin** — the sign-in form is validated with data-driven
+   cases (empty fields, invalid password, unregistered email, valid
+   credentials). Authenticated tests downstream load sachin's session from
+   the per-worker `storage_state` capture instead of sharing a live page.
 3. **Homepage** — while signed in, the page is scrolled top-to-bottom and
    back, and every link on the homepage is validated (well-formed hrefs and
    internal links resolving to a live page).

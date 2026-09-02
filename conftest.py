@@ -64,20 +64,101 @@ def _wire_page_logging(page: Page) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Shared browser session.
+# Per-test browser isolation.
+#
+# Every test gets its own fresh, isolated browser context and page (function
+# scoped). Authenticated tests load sachin's saved session (storage_state) so
+# they start already signed in without sharing a live page; anonymous tests
+# (login, registration, logout, anonymous API) use dedicated anonymous
+# contexts. This makes the suite safe to run with `pytest -n auto`.
 # ---------------------------------------------------------------------------
 
 
-# Share a single browser context and page for the entire run so every test
-# executes in one session (one browser window) instead of a fresh one per test.
+# Force every test that touches sachin's LIVE cart/wishlist/session onto a
+# single worker (via `--dist=loadgroup`) so they never run concurrently
+# against the same account state. Stateless tests stay ungrouped and
+# parallelize across the remaining workers.
+ACCOUNT_STATE_GROUP = "account-state"
+
+
+# -- authenticated session cache (one real login per worker) ----------------
+
 @pytest.fixture(scope="session")
-def context(browser: Browser, browser_context_args: dict) -> BrowserContext:
+def base_url(pytestconfig) -> str | None:
+    """Resolve the target site, also inside xdist workers.
+
+    pytest-base-url only copies the `base_url` ini value into
+    `config.option.base_url` in the MAIN process (it skips worker nodes), so
+    workers would otherwise lose it and relative URL navigations would fail
+    with "Cannot navigate to invalid URL". This shadow fixture falls back to
+    the ini value so every worker resolves the same base URL.
+    """
+    return pytestconfig.getoption("base_url") or pytestconfig.getini("base_url") or None
+
+
+@pytest.fixture(scope="session")
+def auth_state(browser: Browser, browser_context_args: dict) -> dict | None:
+    """The authenticated storage_state (as sachin), or None.
+
+    Session-scoped, so it runs exactly once per worker process: one real login
+    per worker, reused as the starting storage_state for every authenticated
+    test in that worker. The session is kept in memory only (no on-disk cache,
+    which could otherwise let a stale/expired cookie leak between runs).
+    """
+    from utils import USER_EMAIL, USER_PASSWORD
+
+    # Perform a real sign-in in a throwaway context to capture the session.
+    ctx = browser.new_context(**browser_context_args)
+    page = ctx.new_page()
+    try:
+        page.goto("/account/login", wait_until="networkidle")
+        page.locator("#email").fill(USER_EMAIL)
+        page.locator("#password").fill(USER_PASSWORD)
+        with page.expect_navigation(wait_until="load", timeout=30000):
+            page.locator('form[action="/account/login"] button[type="submit"]').click()
+        page.wait_for_load_state("networkidle")
+        # Confirm the session actually stuck before caching it.
+        if not page.url.rstrip("/").endswith("/account"):
+            raise RuntimeError(
+                f"auth-state login did not reach /account (got {page.url}); "
+                "check USER credentials in utils.py"
+            )
+        return ctx.storage_state()
+    finally:
+        ctx.close()
+
+
+# -- authenticated fixtures (default) -----------------------------------------
+
+
+@pytest.fixture(scope="function")
+def context(browser: Browser, browser_context_args: dict,
+            auth_state: dict | None) -> BrowserContext:
+    """A fresh, isolated context; authenticated as sachin by default."""
+    if auth_state is None:
+        return browser.new_context(**browser_context_args)
+    return browser.new_context(storage_state=auth_state, **browser_context_args)
+
+
+@pytest.fixture(scope="function")
+def page(context: BrowserContext) -> Page:
+    page = context.new_page()
+    _wire_page_logging(page)
+    return page
+
+
+# -- anonymous fixtures (logged-out) ------------------------------------------
+
+
+@pytest.fixture(scope="function")
+def anon_context(browser: Browser, browser_context_args: dict) -> BrowserContext:
+    """A fresh, isolated, logged-out context (for login/register/logout/anon API)."""
     return browser.new_context(**browser_context_args)
 
 
-@pytest.fixture(scope="session")
-def page(context: BrowserContext) -> Page:
-    page = context.new_page()
+@pytest.fixture(scope="function")
+def anon_page(anon_context: BrowserContext) -> Page:
+    page = anon_context.new_page()
     _wire_page_logging(page)
     return page
 
@@ -90,15 +171,15 @@ def home_page(page):
 
 
 @pytest.fixture
-def register_page(page):
-    register = RegisterPage(page)
+def register_page(anon_page):
+    register = RegisterPage(anon_page)
     register.goto()
     return register
 
 
 @pytest.fixture
-def login_page(page):
-    login = LoginPage(page)
+def login_page(anon_page):
+    login = LoginPage(anon_page)
     login.goto()
     return login
 
@@ -192,7 +273,8 @@ def pytest_runtest_makereport(item, call):
         else:
             _results[item.nodeid]["outcome"] = report.outcome
 
-        page = item.funcargs.get("page")
+        # The test may use an authenticated page or an anonymous page.
+        page = item.funcargs.get("page") or item.funcargs.get("anon_page")
         url = getattr(page, "url", "") if page is not None else ""
         LOGGER.info(
             "END    %-100s scenario=%s result=%s duration=%.2fs url=%s",

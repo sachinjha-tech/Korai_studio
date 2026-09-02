@@ -3,7 +3,7 @@
 Covers the site's real JSON API surface plus a small set of HTTP-level checks.
 JSON endpoints are cleanly testable without CSRF; form-backed POSTs are
 CSRF-protected, so we assert the security behaviour (403 without a valid token)
-and validate authenticated JSON via the shared logged-in browser session.
+and validate the authenticated JSON endpoint via the isolated authenticated page.
 """
 
 import json
@@ -103,10 +103,11 @@ def test_api_json_endpoints_are_consistent(api):
         json.loads(resp.text())  # must parse as JSON
 
 
-# -- authenticated JSON (via the shared logged-in browser session) ----------
+# -- authenticated JSON (via the isolated authenticated page) ---------------
 
 
 @pytest.mark.order(111)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("positive", "Account-status reports the signed-in user after login")
 def test_api_account_status_logged_in(page):
     """With a valid session, /api/account-status reports logged_in=true."""

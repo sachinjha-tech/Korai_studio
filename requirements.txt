@@ -1,4 +1,6 @@
 pytest-playwright
 pytest-html
 pytest-order
+pytest-xdist
+pytest-timeout
 openpyxl

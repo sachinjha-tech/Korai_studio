@@ -1,9 +1,10 @@
 """Positive purchase-flow UI tests for Korai Studio.
 
-Runs between navigation (70-75) and logout (84-85). Starting from the Short
-Kurtis catalogue, these verify the happy path: the page applies the 'Newest'
-sort, a product is opened, added to the bag, appears in the cart, and the
-checkout/payment page is reached — without ever placing a real order.
+Starting from the Short Kurtis catalogue, these verify the happy path: the
+page applies the 'Newest' sort, a product is opened, added to the bag, appears
+in the cart, and the checkout/payment page is reached — without ever placing a
+real order. Because they mutate sachin's LIVE cart, they are pinned to a
+single worker via @pytest.mark.xdist_group("account-state") + `--dist=loadgroup`.
 """
 
 import pytest
@@ -61,6 +62,7 @@ def ensure_item_in_cart(page, cart):
 
 
 @pytest.mark.order(76)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("positive", "Short Kurtis page loads with the Newest sort applied")
 def test_short_kurtis_page_applies_newest_sort(page):
     """The catalogue page opens and 'Newest' is the active sort default."""
@@ -75,6 +77,7 @@ def test_short_kurtis_page_applies_newest_sort(page):
 
 
 @pytest.mark.order(77)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("positive", "A product opens with size selector and Add to bag")
 def test_open_product_shows_size_and_add_to_bag(page):
     """Clicking a card from Short Kurtis opens its product detail page."""
@@ -99,6 +102,7 @@ def test_open_product_shows_size_and_add_to_bag(page):
 
 
 @pytest.mark.order(78)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("positive", "Adding to the bag updates the cart without leaving the page")
 def test_add_to_bag_updates_cart(page):
     """Add to bag is AJAX now: /cart/add returns JSON and the badge updates.
@@ -131,6 +135,7 @@ def test_add_to_bag_updates_cart(page):
 
 
 @pytest.mark.order(79)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("positive", "The cart lists the added product with size, qty and price")
 def test_cart_shows_added_product_and_checkout_link(page):
     """The cart line shows the right product, size S, quantity 1 and price."""
@@ -153,6 +158,7 @@ def test_cart_shows_added_product_and_checkout_link(page):
 
 
 @pytest.mark.order(80)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("positive", "Navigating to checkout reaches the payment page")
 def test_checkout_page_reachable_with_payment_form(page):
     """From the cart, CHECKOUT leads to the payment page with address + pay form."""
@@ -179,6 +185,7 @@ def test_checkout_page_reachable_with_payment_form(page):
 
 
 @pytest.mark.order(81)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("negative", "Place Order is never submitted — payment is not executed")
 def test_payment_is_not_executed(page):
     """The test deliberately stops at checkout without clicking Place Order."""
@@ -199,6 +206,7 @@ def test_payment_is_not_executed(page):
 
 
 @pytest.mark.order(82)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("positive", "The checkout page's Place Order label shows the order amount")
 def test_checkout_place_order_shows_amount(page):
     """Place Order renders with the computed order total (e.g. ₹799)."""
@@ -218,6 +226,7 @@ def test_checkout_place_order_shows_amount(page):
 
 
 @pytest.mark.order(83)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("positive", "Cart is cleaned up so the next run starts fresh")
 def test_cart_cleaned_up_after_purchase_flow(page):
     """Remove all items so no state leaks into the logout suite or future runs."""

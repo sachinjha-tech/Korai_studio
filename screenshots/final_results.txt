@@ -1,8 +1,8 @@
 ======================================================================
  Korai Studio — UI Test Run Summary
- Finished at: 2026-09-02 11:56:27
+ Finished at: 2026-09-02 19:23:44
  Exit status: 1
- Log file: c:\Users\sachin.jha\OneDrive - Celestial Systems\Documents\Python learning\Korai_studio\reports\logs\korai_run_20260902_114146.log
+ Log file: C:\Users\sachin.jha\OneDrive - Celestial Systems\Documents\Python learning\Korai_studio\reports\logs\korai_run_20260902_191735.log
 ======================================================================
 
 #    Scenario  Result   Test
@@ -67,213 +67,221 @@
 20   POSITIVE  PASSED   The 'Sign in' link on the register page opens login
           test    : tests/test_login.py::test_login_page_reachable_from_register[chromium]
 
-21   NEGATIVE  PASSED   Empty sign-in is blocked — required fields fire native validation
-          test    : tests/test_login.py::test_login_negative_empty_submission_is_blocked[chromium]
-
-22   NEGATIVE  PASSED   Malformed email address is rejected by the input
+21   NEGATIVE  PASSED   Malformed email address is rejected by the input
           test    : tests/test_login.py::test_login_negative_invalid_email_format_is_blocked[chromium]
 
-23   EDGE      PASSED   A correctly formatted email is accepted by the form
+22   EDGE      PASSED   A correctly formatted email is accepted by the form
           test    : tests/test_login.py::test_login_edge_valid_email_format_accepted[chromium]
 
-24   NEGATIVE  PASSED   Incorrect credentials are rejected — no login
-          test    : tests/test_login.py::test_submit_with_invalid_credentials_is_rejected[chromium]
+23   DATA-DRIVEN PASSED   Login form: valid, invalid-password, unregistered-email and empty cases
+          test    : tests/test_login.py::test_login_credentials[chromium-empty-fields]
+          details : - valid credentials     -> redirect to /account, name shown in header - invalid password      -> stays on /account/login, 'don't match' message - unregistered email     -> stays on /account/login, 'don't match' message - empty fields           -> stays on /account/login, 'Enter your email and password.' message The page is (re)loaded fresh for each parameter so cases never leak state.
 
-25   POSITIVE  PASSED   Sachin's valid credentials log in and land on the account page
-          test    : tests/test_login.py::test_submit_with_valid_credentials_logs_in[chromium]
+24   DATA-DRIVEN PASSED   Login form: valid, invalid-password, unregistered-email and empty cases
+          test    : tests/test_login.py::test_login_credentials[chromium-invalid-password]
+          details : - valid credentials     -> redirect to /account, name shown in header - invalid password      -> stays on /account/login, 'don't match' message - unregistered email     -> stays on /account/login, 'don't match' message - empty fields           -> stays on /account/login, 'Enter your email and password.' message The page is (re)loaded fresh for each parameter so cases never leak state.
 
-26   POSITIVE  PASSED   The homepage loads successfully and the Korai Studio logo is shown
+25   DATA-DRIVEN PASSED   Login form: valid, invalid-password, unregistered-email and empty cases
+          test    : tests/test_login.py::test_login_credentials[chromium-unregistered-email]
+          details : - valid credentials     -> redirect to /account, name shown in header - invalid password      -> stays on /account/login, 'don't match' message - unregistered email     -> stays on /account/login, 'don't match' message - empty fields           -> stays on /account/login, 'Enter your email and password.' message The page is (re)loaded fresh for each parameter so cases never leak state.
+
+26   DATA-DRIVEN PASSED   Login form: valid, invalid-password, unregistered-email and empty cases
+          test    : tests/test_login.py::test_login_credentials[chromium-valid-credentials]
+          details : - valid credentials     -> redirect to /account, name shown in header - invalid password      -> stays on /account/login, 'don't match' message - unregistered email     -> stays on /account/login, 'don't match' message - empty fields           -> stays on /account/login, 'Enter your email and password.' message The page is (re)loaded fresh for each parameter so cases never leak state.
+
+27   POSITIVE  PASSED   The homepage loads successfully and the Korai Studio logo is shown
           test    : tests/test_homepage.py::test_homepage_loads_and_logo_visible[chromium]
 
-27   POSITIVE  PASSED   The logo is wrapped in a link back to the homepage root
+28   POSITIVE  PASSED   The logo is wrapped in a link back to the homepage root
           test    : tests/test_homepage.py::test_logo_is_a_link_back_to_home[chromium]
 
-28   POSITIVE  PASSED   A promo/announcement strip is rendered at the top of the page
+29   POSITIVE  PASSED   A promo/announcement strip is rendered at the top of the page
           test    : tests/test_homepage.py::test_announcement_bar_is_visible[chromium]
 
-29   POSITIVE  PASSED   The homepage hero carousel and its navigation dots are present
+30   POSITIVE  PASSED   The homepage hero carousel and its navigation dots are present
           test    : tests/test_homepage.py::test_hero_carousel_is_rendered[chromium]
 
-30   POSITIVE  PASSED   The homepage displays product cards in the featured section
+31   POSITIVE  PASSED   The homepage displays product cards in the featured section
           test    : tests/test_homepage.py::test_product_section_shows_items[chromium]
 
-31   POSITIVE  PASSED   Each primary nav link is visible, enabled and points at a same-site URL
+32   POSITIVE  PASSED   Each primary nav link is visible, enabled and points at a same-site URL
           test    : tests/test_homepage.py::test_main_navigation_items_visible_and_clickable[chromium]
 
-32   POSITIVE  PASSED   The header reflects the signed-in sachin session and wishlist link
+33   POSITIVE  PASSED   The header reflects the signed-in sachin session and wishlist link
           test    : tests/test_homepage.py::test_logged_in_as_sachin_on_homepage[chromium]
 
-33   POSITIVE  PASSED   Scrolling through the homepage reaches the footer; scrolling back to top
+34   POSITIVE  PASSED   Scrolling through the homepage reaches the footer; scrolling back to top
           test    : tests/test_homepage.py::test_homepage_scrolls_down_and_back_up[chromium]
 
-34   POSITIVE  PASSED   Every anchor on the homepage has a valid href and internal links resolve
+35   POSITIVE  PASSED   Every anchor on the homepage has a valid href and internal links resolve
           test    : tests/test_homepage.py::test_all_homepage_links_are_valid[chromium]
 
-35   POSITIVE  PASSED   The shop page loads with products and the sachin session visible
+36   POSITIVE  PASSED   The shop page loads with products and the sachin session visible
           test    : tests/test_shop.py::test_shop_page_loads_signed_in[chromium]
 
-36   POSITIVE  PASSED   The filter panel exposes sort, colour, design and price controls
+37   POSITIVE  PASSED   The filter panel exposes sort, colour, design and price controls
           test    : tests/test_shop.py::test_shop_filter_panel_opens_and_lists_widgets[chromium]
 
-37   POSITIVE  PASSED   Sorting by lowest price reorders the grid ascending
+38   POSITIVE  PASSED   Sorting by lowest price reorders the grid ascending
           test    : tests/test_shop.py::test_sort_by_price_low_to_high[chromium]
 
-38   POSITIVE  PASSED   Sorting by highest price reorders the grid descending
+39   POSITIVE  PASSED   Sorting by highest price reorders the grid descending
           test    : tests/test_shop.py::test_sort_by_price_high_to_low[chromium]
 
-39   POSITIVE  PASSED   Filtering by a colour reduces the grid to matching products
+40   POSITIVE  PASSED   Filtering by a colour reduces the grid to matching products
           test    : tests/test_shop.py::test_filter_by_colour_narrows_grid[chromium]
 
-40   POSITIVE  PASSED   Filtering by a design reduces the grid to matching products
+41   POSITIVE  PASSED   Filtering by a design reduces the grid to matching products
           test    : tests/test_shop.py::test_filter_by_design_narrows_grid[chromium]
 
-41   POSITIVE  PASSED   A price range keeps only products whose sale price falls inside it
+42   POSITIVE  PASSED   A price range keeps only products whose sale price falls inside it
           test    : tests/test_shop.py::test_price_range_filter_narrows_grid[chromium]
 
-42   POSITIVE  PASSED   A fresh visit to the shop shows the full, unfiltered grid
+43   POSITIVE  PASSED   A fresh visit to the shop shows the full, unfiltered grid
           test    : tests/test_shop.py::test_filters_reset_to_default[chromium]
 
-43   POSITIVE  PASSED   Clicking a primary nav item lands on the right page with the right title
+44   POSITIVE  PASSED   Clicking a primary nav item lands on the right page with the right title
           test    : tests/test_navigation.py::test_primary_nav_navigates_to_expected_page[chromium-Shop-/shop-Shop \u2014 Korai Studio-Everything]
 
-44   POSITIVE  PASSED   Clicking a primary nav item lands on the right page with the right title
+45   POSITIVE  PASSED   Clicking a primary nav item lands on the right page with the right title
           test    : tests/test_navigation.py::test_primary_nav_navigates_to_expected_page[chromium-Best Sellers-/best-sellers-Best Sellers \u2014 Korai Studio-Best Sellers]
 
-45   POSITIVE  PASSED   Clicking a primary nav item lands on the right page with the right title
+46   POSITIVE  PASSED   Clicking a primary nav item lands on the right page with the right title
           test    : tests/test_navigation.py::test_primary_nav_navigates_to_expected_page[chromium-New Arrivals-/new-arrivals-New Arrivals \u2014 Korai Studio-New Arrivals]
 
-46   POSITIVE  PASSED   Clicking the logo returns the user to the homepage root
+47   POSITIVE  PASSED   Clicking the logo returns the user to the homepage root
           test    : tests/test_navigation.py::test_logo_navigates_back_home[chromium]
 
-47   POSITIVE  PASSED   Hovering Collections shows its top-level sub-category links, all same-site
+48   POSITIVE  PASSED   Hovering Collections shows its top-level sub-category links, all same-site
           test    : tests/test_navigation.py::test_collections_dropdown_reveals_links[chromium]
 
-48   POSITIVE  PASSED   Expanding 'Launching Soon' reveals its links, all pointing to same-site pages
+49   POSITIVE  PASSED   Expanding 'Launching Soon' reveals its links, all pointing to same-site pages
           test    : tests/test_navigation.py::test_collections_subgroup_expands_and_links_visited[chromium]
 
-49   POSITIVE  PASSED   A dropdown link such as 'Shirts' navigates to its shop category page
+50   POSITIVE  PASSED   A dropdown link such as 'Shirts' navigates to its shop category page
           test    : tests/test_navigation.py::test_collections_dropdown_link_navigates_to_shop_subcategory[chromium]
 
-50   POSITIVE  PASSED   The header Bag link opens the cart page, never the checkout/payment flow
+51   POSITIVE  PASSED   The header Bag link opens the cart page, never the checkout/payment flow
           test    : tests/test_navigation.py::test_cart_link_goes_to_bag_not_checkout[chromium]
 
-51   POSITIVE  PASSED   Short Kurtis page loads with the Newest sort applied
+52   POSITIVE  PASSED   Short Kurtis page loads with the Newest sort applied
           test    : tests/test_purchase_flow.py::test_short_kurtis_page_applies_newest_sort[chromium]
 
-52   POSITIVE  PASSED   A product opens with size selector and Add to bag
+53   POSITIVE  PASSED   A product opens with size selector and Add to bag
           test    : tests/test_purchase_flow.py::test_open_product_shows_size_and_add_to_bag[chromium]
 
-53   POSITIVE  PASSED   Adding to the bag updates the cart without leaving the page
+54   POSITIVE  PASSED   Adding to the bag updates the cart without leaving the page
           test    : tests/test_purchase_flow.py::test_add_to_bag_updates_cart[chromium]
           details : The storefront used to full-page redirect to /cart after submit; it now posts via fetch (the header cart badge updates in place) and only the checkout page is reached through a subsequent navigation.
 
-54   POSITIVE  PASSED   The cart lists the added product with size, qty and price
+55   POSITIVE  PASSED   The cart lists the added product with size, qty and price
           test    : tests/test_purchase_flow.py::test_cart_shows_added_product_and_checkout_link[chromium]
 
-55   POSITIVE  PASSED   Navigating to checkout reaches the payment page
+56   POSITIVE  PASSED   Navigating to checkout reaches the payment page
           test    : tests/test_purchase_flow.py::test_checkout_page_reachable_with_payment_form[chromium]
 
-56   NEGATIVE  PASSED   Place Order is never submitted — payment is not executed
+57   NEGATIVE  PASSED   Place Order is never submitted — payment is not executed
           test    : tests/test_purchase_flow.py::test_payment_is_not_executed[chromium]
 
-57   POSITIVE  PASSED   The checkout page's Place Order label shows the order amount
+58   POSITIVE  PASSED   The checkout page's Place Order label shows the order amount
           test    : tests/test_purchase_flow.py::test_checkout_place_order_shows_amount[chromium]
 
-58   POSITIVE  PASSED   Cart is cleaned up so the next run starts fresh
+59   POSITIVE  PASSED   Cart is cleaned up so the next run starts fresh
           test    : tests/test_purchase_flow.py::test_cart_cleaned_up_after_purchase_flow[chromium]
 
-59   POSITIVE  PASSED   Search box filters results and lands on /search
+60   POSITIVE  PASSED   Search box filters results and lands on /search
           test    : tests/test_search.py::test_search_page_loads_and_submits[chromium]
 
-60   POSITIVE  PASSED   Found results show matching product cards
+61   POSITIVE  PASSED   Found results show matching product cards
           test    : tests/test_search.py::test_search_found_results_show_cards[chromium]
 
-61   NEGATIVE  PASSED   No results produces a friendly message
+62   NEGATIVE  PASSED   No results produces a friendly message
           test    : tests/test_search.py::test_search_no_results_shows_message[chromium]
 
-62   EDGE      PASSED   Empty query does not crash and keeps the search box
+63   EDGE      PASSED   Empty query does not crash and keeps the search box
           test    : tests/test_search.py::test_search_empty_query_stays_clean[chromium]
 
-63   EDGE      PASSED   A very long query is clamped to the input max length
+64   EDGE      PASSED   A very long query is clamped to the input max length
           test    : tests/test_search.py::test_search_long_query_respects_maxlength[chromium]
 
-64   POSITIVE  PASSED   Search results link to valid product pages
+65   POSITIVE  PASSED   Search results link to valid product pages
           test    : tests/test_search.py::test_search_result_links_open_products[chromium]
 
-65   NEGATIVE  PASSED   Search card name matches the product page title
+66   NEGATIVE  PASSED   Search card name matches the product page title
           test    : tests/test_search.py::test_search_card_name_matches_product[chromium]
 
-66   POSITIVE  PASSED   The Saved page loads with a helpful empty state
+67   POSITIVE  PASSED   The Saved page loads with a helpful empty state
           test    : tests/test_wishlist.py::test_wishlist_empty_state[chromium]
 
-67   POSITIVE  PASSED   Save for later adds an item to the wishlist
+68   POSITIVE  PASSED   Save for later adds an item to the wishlist
           test    : tests/test_wishlist.py::test_save_product_to_wishlist[chromium]
 
-68   POSITIVE  PASSED   The saved item is the correct product
+69   POSITIVE  PASSED   The saved item is the correct product
           test    : tests/test_wishlist.py::test_wishlist_shows_correct_product[chromium]
 
-69   POSITIVE  PASSED   A saved item is reflected on the Saved page heart
+70   POSITIVE  PASSED   A saved item is reflected on the Saved page heart
           test    : tests/test_wishlist.py::test_wishlist_heart_state_reflected[chromium]
 
-70   NEGATIVE  PASSED   Removing the item empties the wishlist again
+71   NEGATIVE  PASSED   Removing the item empties the wishlist again
           test    : tests/test_wishlist.py::test_remove_from_wishlist[chromium]
 
-71   POSITIVE  PASSED   The product page shows title, price and size options
+72   POSITIVE  PASSED   The product page shows title, price and size options
           test    : tests/test_product.py::test_product_page_shows_title_price_sizes[chromium]
 
-72   POSITIVE  PASSED   Fabric and Delivery accordions are present and expandable
+73   POSITIVE  PASSED   Fabric and Delivery accordions are present and expandable
           test    : tests/test_product.py::test_product_info_accordions_available[chromium]
 
-73   POSITIVE  PASSED   Pincode check confirms delivery availability
+74   POSITIVE  PASSED   Pincode check confirms delivery availability
           test    : tests/test_product.py::test_product_delivery_pincode_check[chromium]
 
-74   POSITIVE  PASSED   The size guide modal opens and closes
+75   POSITIVE  PASSED   The size guide modal opens and closes
           test    : tests/test_product.py::test_product_size_guide_modal[chromium]
 
-75   POSITIVE  PASSED   Track-order page loads with number and phone fields
+76   POSITIVE  PASSED   Track-order page loads with number and phone fields
           test    : tests/test_track_order.py::test_track_order_page_loads[chromium]
 
-76   NEGATIVE  PASSED   Submitting an unknown order shows a graceful message
+77   NEGATIVE  PASSED   Submitting an unknown order shows a graceful message
           test    : tests/test_track_order.py::test_track_order_unknown_order_handled[chromium]
 
-77   NEGATIVE  FAILED   Empty submission is blocked — no navigation to /order/verify
+78   NEGATIVE  FAILED   Empty submission is blocked — no navigation to /order/verify
           test    : tests/test_track_order.py::test_track_order_empty_submission_handled[chromium]
           details : The inputs are already required (verified in order-100). For that constraint to take effect the form must NOT set novalidate — the site currently ships a trailing novalidate attribute, which turns validation off and lets an empty submit reach /order/verify.
 
-78   EDGE      PASSED   Phone and order number fields enforce a max length
+79   EDGE      PASSED   Phone and order number fields enforce a max length
           test    : tests/test_track_order.py::test_track_order_inputs_clamp_to_max_length[chromium]
 
-79   POSITIVE  PASSED   Cart-count API returns valid JSON with an integer count
+80   POSITIVE  PASSED   Cart-count API returns valid JSON with an integer count
           test    : tests/test_api.py::test_api_cart_count_anonymous
 
-80   POSITIVE  PASSED   Account-status API reports anonymous as logged out
+81   POSITIVE  PASSED   Account-status API reports anonymous as logged out
           test    : tests/test_api.py::test_api_account_status_anonymous
 
-81   NEGATIVE  PASSED   An unknown API route returns 404
+82   NEGATIVE  PASSED   An unknown API route returns 404
           test    : tests/test_api.py::test_api_unknown_route_404
 
-82   POSITIVE  PASSED   Key public pages respond 200 over HTTP
+83   POSITIVE  PASSED   Key public pages respond 200 over HTTP
           test    : tests/test_api.py::test_api_public_pages_ok
 
-83   POSITIVE  PASSED   Search respects the query string over HTTP
+84   POSITIVE  PASSED   Search respects the query string over HTTP
           test    : tests/test_api.py::test_api_search_returns_products
 
-84   NEGATIVE  PASSED   CSRF-protected POSTs are rejected without a valid token
+85   NEGATIVE  PASSED   CSRF-protected POSTs are rejected without a valid token
           test    : tests/test_api.py::test_api_post_requires_csrf
 
-85   NEGATIVE  PASSED   A malformed cart-count response shape is absent — API stays consistent
+86   NEGATIVE  PASSED   A malformed cart-count response shape is absent — API stays consistent
           test    : tests/test_api.py::test_api_json_endpoints_are_consistent
 
-86   POSITIVE  PASSED   Account-status reports the signed-in user after login
+87   POSITIVE  PASSED   Account-status reports the signed-in user after login
           test    : tests/test_api.py::test_api_account_status_logged_in[chromium]
 
-87   POSITIVE  PASSED   Sign out from the account page returns to the sign-in page
+88   POSITIVE  PASSED   Sign out from the account page returns to the sign-in page
           test    : tests/test_logout.py::test_logout_signs_out_from_account_page[chromium]
 
-88   NEGATIVE  PASSED   Protected account page is blocked after logout
+89   NEGATIVE  PASSED   Protected account page is blocked after logout
           test    : tests/test_logout.py::test_session_cleared_after_logout[chromium]
+          details : Runs in its own isolated authenticated page, so it signs itself out first (it does not depend on the order-112 test having run).
 
 ======================================================================
- TOTAL: 88   PASSED: 87   FAILED: 1   SKIPPED: 0
- SCENARIOS: POSITIVE: 65   NEGATIVE: 16   EDGE: 7
+ TOTAL: 89   PASSED: 88   FAILED: 1   SKIPPED: 0
+ SCENARIOS: POSITIVE: 64   NEGATIVE: 14   EDGE: 7
 ======================================================================

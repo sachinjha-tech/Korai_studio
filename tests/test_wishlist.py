@@ -1,8 +1,16 @@
 """Wishlist (Saved) UI tests for Korai Studio.
 
-Runs while the session is signed in (from step 2). These verify the empty
-Saved page, adding an item to the wishlist from a product page, reflecting it
-on the Saved page, and removing it again.
+Exercises the Saved page against sachin's authenticated session: the empty
+state, saving an item from a product page, reflecting it on the Saved page and
+removing it again.
+
+Each test runs in its own isolated (function-scoped) authenticated page and
+starts by guaranteeing an empty wishlist, so the sequence is self-contained:
+removing @pytest.mark.order would not break anything.
+
+Because these tests mutate sachin's LIVE wishlist, they are pinned to a single
+worker via @pytest.mark.xdist_group("account-state") + `--dist=loadgroup` so
+they never run concurrently against the shared account.
 """
 
 import pytest
@@ -40,6 +48,7 @@ def add_to_wishlist(page):
 
 
 @pytest.mark.order(91)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("positive", "The Saved page loads with a helpful empty state")
 def test_wishlist_empty_state(page):
     """An empty wishlist shows the 'Nothing saved yet' message."""
@@ -52,6 +61,7 @@ def test_wishlist_empty_state(page):
 
 
 @pytest.mark.order(92)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("positive", "Save for later adds an item to the wishlist")
 def test_save_product_to_wishlist(page):
     """Toggling the heart on the product page saves the item."""
@@ -67,6 +77,7 @@ def test_save_product_to_wishlist(page):
 
 
 @pytest.mark.order(93)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("positive", "The saved item is the correct product")
 def test_wishlist_shows_correct_product(page):
     """The wishlist lists the exact product that was saved."""
@@ -84,6 +95,7 @@ def test_wishlist_shows_correct_product(page):
 
 
 @pytest.mark.order(94)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("positive", "A saved item is reflected on the Saved page heart")
 def test_wishlist_heart_state_reflected(page):
     """The heart on the Saved page shows the item as saved (pressed)."""
@@ -99,6 +111,7 @@ def test_wishlist_heart_state_reflected(page):
 
 
 @pytest.mark.order(95)
+@pytest.mark.xdist_group("account-state")
 @pytest.mark.case("negative", "Removing the item empties the wishlist again")
 def test_remove_from_wishlist(page):
     """Un-save the item and confirm the wishlist returns to its empty state."""
